@@ -9,6 +9,20 @@ var MongoClient = require('./server');
 var index = require('./routes/index');
 var users = require('./routes/users');
 
+var User = require('./models/User.js');
+var Game = require('./models/Game.js');
+
+// // To create a new game
+// var game = new Game({
+//     id: '123',
+//     min_bid: 10,
+//     start_time: Date.now()
+// });
+
+// // To save the game
+// game.save();
+
+
 var app = express();
 
 // view engine setup
