@@ -4,10 +4,25 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var MongoClient = require('./server');
+var cronMaster = require('./util/CronMaster');
+var dbManager = require('./DBManager');
 
 var index = require('./routes/index');
 var users = require('./routes/users');
+
+var User = require('./models/User.js');
+var Game = require('./models/Game.js');
+
+// // To create a new game
+// var game = new Game({
+//     id: '123',
+//     min_bid: 10,
+//     start_time: Date.now()
+// });
+
+// // To save the game
+// game.save();
+
 
 var app = express();
 
@@ -43,5 +58,8 @@ app.use(function(err, req, res, next) {
     res.status(err.status || 500);
     res.render('error');
 });
+
+// start clock
+cronMaster.startCronjob();
 
 module.exports = app;
