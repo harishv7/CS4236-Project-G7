@@ -32,7 +32,7 @@ var addNewTransaction = function(transaction, callback) {
     callback(null);
 };
 
-functione executeTransaction(transaction) {
+function executeTransaction(transaction) {
     const transactionId = transaction.transaction_id;
     switch (transactionId) {
         case transactionTypes.ACTIVATE:
