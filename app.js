@@ -17,10 +17,11 @@ var app = express();
 
 // socket
 var server = require('http').createServer(app);
-global.socket = require('socket.io')(server);
+global.io = require('socket.io')(server);
 
-socket.on('connect', onConnect);
 server.listen(3000);
+
+io.on('connect', onConnect);
 
 function onConnect(socket) {
     console.log("Socket Connected.");
@@ -64,6 +65,5 @@ app.use(function(err, req, res, next) {
 cronMaster.startCronjob();
 
 module.exports = {
-    app,
-    socket
+    app
 };

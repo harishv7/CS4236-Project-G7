@@ -26,10 +26,11 @@ function getRandomInt(min, max) {
 }
 
 var addNewTransaction = function(transaction, callback) {
+    // io.emit('init', [1, 2, 3]);
     transactionQueue.unshift(transaction);
     console.log("Current transaction queue: ");
     console.log(transactionQueue);
-    socket.emit('newTransaction', transaction);
+    io.emit('newTransaction', transaction);
     callback(null);
 };
 

@@ -1,2 +1,21 @@
 <h1>{{title}}</h1>
 <p>Welcome to {{title}}</p>
+
+<script>
+    const socket = io('http://localhost:3000');
+    socket.on('connection', function(client){});
+
+    socket.emit('init');
+
+    socket.on('init', (transactionQueue) => {
+        console.log("initialising");
+        for(transaction in transactionQueue) {
+            document.body.innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
+        }
+    });
+
+    socket.on('newTransaction', (transaction) => {
+        console.log("New transaction received.");
+        document.body.innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
+    });
+</script>
