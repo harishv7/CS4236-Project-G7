@@ -1,7 +1,7 @@
 var CronJob = require('cron').CronJob;
 
 // execute every minute
-const cronExpression = '*/10 * * * * *';
+const cronExpression = '*/30 * * * * *';
 
 // array containing all transactions to be served
 var transactionQueue = [];
@@ -29,6 +29,7 @@ var addNewTransaction = function(transaction, callback) {
     transactionQueue.unshift(transaction);
     console.log("Current transaction queue: ");
     console.log(transactionQueue);
+    socket.emit('newTransaction', transaction);
     callback(null);
 };
 

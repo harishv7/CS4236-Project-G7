@@ -13,18 +13,19 @@ var users = require('./routes/users');
 var User = require('./models/User.js');
 var Game = require('./models/Game.js');
 
-// // To create a new game
-// var game = new Game({
-//     id: '123',
-//     min_bid: 10,
-//     start_time: Date.now()
-// });
-
-// // To save the game
-// game.save();
-
-
 var app = express();
+
+// socket
+var server = require('http').createServer(app);
+global.socket = require('socket.io')(server);
+
+socket.on('connect', onConnect);
+server.listen(3000);
+
+function onConnect(socket) {
+    console.log("Socket Connected.");
+    socket.emit('hello', 'can you hear me?', 1, 2, 'abc');
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -62,4 +63,7 @@ app.use(function(err, req, res, next) {
 // start clock
 cronMaster.startCronjob();
 
-module.exports = app;
+module.exports = {
+    app,
+    socket
+};
