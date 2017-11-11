@@ -30,9 +30,8 @@ var display_games = function(req, res) {
 };
 
 
-var create_game = function(req, res) {
+var activate = function(req, res) {
     let game = new Game({
-        id: req.body.id,
         min_bid: req.body.min_bid,
         start_time: Date.now()
     });
@@ -46,14 +45,12 @@ var create_game = function(req, res) {
 };
 
 
-var update_game = function(req, res) {
+var kill_game = function(req, res) {
     var id = req.params.id;
-    var min_bid = req.body.min_bid;
 
-    var body = _.pick(req.body, ['min_bid']);
-    body.min_bid = min_bid;
+    var body = _.pick(req.body, ['completed']);
 
-    Game.findOneAndUpdate(id, {$set: body}, {new: true}).then(function(game) {
+    Game.findOneAndUpdate({id}, {$set: body}, {new: true}).then(function(game) {
         if (!game) {
             return res.status(404).send('Game does not exist');
         } else {
@@ -84,7 +81,7 @@ var delete_game = function(req, res) {
 module.exports = {
     display_game,
     display_games,
-    create_game,
-    update_game,
+    activate,
+    kill_game,
     delete_game
 }
