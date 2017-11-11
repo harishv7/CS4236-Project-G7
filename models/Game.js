@@ -14,6 +14,11 @@ var GameSchema = new Schema({
     start_time: {
         type: Date,
         required: true
+    },
+    completed: {
+        type: Boolean,
+        required: true,
+        default: false
     }
 });
 
