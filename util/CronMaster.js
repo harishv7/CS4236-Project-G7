@@ -1,6 +1,7 @@
 var CronJob = require('cron').CronJob;
 var Game = require('./Game');
 var GameStates = require('./GameStates');
+var async = require('async');
 
 // execute every minute
 const cronExpression = '*/20 * * * * *';
@@ -41,8 +42,9 @@ var addNewTransaction = function(transaction, callback) {
 
 function activateNewGame(transaction) {
     console.log("activating game.");
-    const minBidValue = transaction.min_bid_value;
-    const playerBalance = transaction.player_balance;
+    const minBidValue = parseInt(transaction.min_bid_value);
+    // TODO: do we need to check the initiator's balance?
+    const playerBalance = parseInt(transaction.player_balance);
 
     // create new Game with the minBidValue
     const newGameId = ++totalGames;
@@ -51,15 +53,15 @@ function activateNewGame(transaction) {
 }
 
 function joinNewGame(transaction) {
-    const gameId = transaction.game_id;
-    const playerId = transaction.player_id;
-    const playerBalance = transaction.player_balance;
+    const gameId = parseInt(transaction.game_id);
+    const playerId = parseInt(transaction.player_id);
+    const playerBalance = parseInt(transaction.player_balance);
 
-    if (gameId in ongoingGames) {
-        const game = ongoingGames[gameId];
+    if (gameId in gameRequests) {
+        const game = gameRequests[gameId];
         game.addNewPlayer(playerId, playerBalance, function(err) {
             if (err) {
-                console.log(err);
+                console.error(err);
             } else {
                 console.log(playerId + " has joined " + gameId);
             }
@@ -77,6 +79,7 @@ function executeTransaction(transaction) {
             activateNewGame(transaction);
             break;
         case transactionTypes.JOINGAME:
+            console.log("JOIN GAME");
             joinNewGame(transaction);
             break;
         default:
@@ -85,55 +88,75 @@ function executeTransaction(transaction) {
 }
 
 var cronJob = new CronJob(cronExpression, function() {
-    // retrieve a transaction from the queue and serve
     // increment clock
     clock += 1;
     console.log("Clock: " + clock);
 
-    // TODO: increment game state of all games - both ongoing and pending
+    async.series([
+        function(callback) {
+            // check on all pending game requests to see if enough players have joined
+            for (var gameId in gameRequests) {
+                console.log(gameId);
+                const game = gameRequests[gameId];
+                console.log(game);
+                const gameState = parseInt(game.gameState);
 
-    // in every time block, we execute all pending transactions in the queue
-    while (transactionQueue.length > 0) {
-        const lengthOfQueue = transactionQueue.length;
-        const randomIndex = getRandomInt(0, lengthOfQueue - 1);
+                console.log("Game state: " + gameState);
+                console.log(GameStates.JOINGAME);
 
-        // serve transaction
-        console.log("Executing transaction:");
-        console.log(transactionQueue[randomIndex]);
+                // if the previous state was to join game, we check if sufficient players have joined
+                if (gameState === 1) {
+                    console.log("Checking Join Game");
+                    console.log(gameRequests);
 
-        executeTransaction(transactionQueue[randomIndex]);
+                    console.log("Checking on game id: " + gameId);
+                    console.log("Number of players: " + game.numOfPlayers);
 
-        transactionQueue.splice(randomIndex, 1);
-    }
-
-    // check on all pending game requests to see if enough players have joined
-    for (var gameId in gameRequests) {
-        console.log(gameId);
-        const game = gameRequests[gameId];
-        console.log(game);
-        const gameState = game.gameState;
-
-        console.log("Game state: " + gameState);
-
-        if (gameState === GameStates.JOINGAME) {
-            console.log("Game id: " + gameId);
-            console.log(gameRequests);
-
-            console.log("Checking on game id: " + gameId);
-            console.log("Number of players: " + game.numOfPlayers);
-
-            if (game.numOfPlayers < 3) {
-                console.log("Game has fewer than 3 players. Killing game.");
-                delete gameRequests[gameId];
-            } else {
-                console.log("Game starting.");
-                // increment game phase, move game into ongoing games
-                game.incrementGameState();
-                ongoingGames[gameId] = game;
-                delete gameRequests[gameId];
+                    if (game.numOfPlayers < 3) {
+                        console.log("Game has fewer than 3 players. Killing game.");
+                        delete gameRequests[gameId];
+                    } else {
+                        console.log("Game starting.");
+                        // increment game phase, move game into ongoing games
+                        game.incrementGameState();
+                        ongoingGames[gameId] = game;
+                        delete gameRequests[gameId];
+                    }
+                }
             }
+
+            callback(null);
+        },
+        function(callback) {
+            // TODO: increment game state of all games - both ongoing and pending
+            for (var gameId in ongoingGames) {
+                ongoingGames[gameId].incrementGameState();
+            }
+
+            for (var gameId in gameRequests) {
+                gameRequests[gameId].incrementGameState();
+            }
+
+            callback(null);
+        },
+        function(callback) {
+            // in every time block, we execute all pending transactions in the queue
+            while (transactionQueue.length > 0) {
+                const lengthOfQueue = transactionQueue.length;
+                const randomIndex = getRandomInt(0, lengthOfQueue - 1);
+
+                // serve transaction
+                console.log("Executing transaction:");
+                console.log(transactionQueue[randomIndex]);
+
+                executeTransaction(transactionQueue[randomIndex]);
+
+                transactionQueue.splice(randomIndex, 1);
+            }
+
+            callback(null);
         }
-    }
+    ]);
 }, function() {
     // executed when cronjob is stopped
     console.log("Cronjob stopped.");

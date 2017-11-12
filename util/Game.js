@@ -11,13 +11,12 @@ class Game {
     }
 
     addNewPlayer(playerId, playerBalance, callback) {
-        if (playerBalance > this.minBidValue) {
+        if (playerBalance > this._minBidValue) {
             this._numOfPlayers += 1;
             this._players.push(playerId);
-            console.log("Added new player: " + playerId + ", playerbal: " + playerBalance);
             callback(null);
         } else {
-            callback(new Error("Player has insufficient funds to join game."));
+            callback("Player has insufficient funds to join game.");
         }
     }
 
