@@ -9,22 +9,25 @@ const cronExpression = '*/20 * * * * *';
 // array containing all transactions to be served
 var transactionQueue = [];
 
+// games which are in progress
 var ongoingGames = {};
+
+// stores games which are pending for players to join
 var gameRequests = {};
 var totalGames = 0;
 
-// global clock
+// global clock counter
 var clock = 0;
 
 // transaction codes
 var transactionTypes = {
     ACTIVATE: 0,
     JOINGAME: 1,
-    KILLGAME: 2,
+    KILLGAME: 2, // issued by broker
     STARTGAME: 3,
     GAMEREGISTER: 4,
     REVEALSECRET: 5,
-    DISTRIBUTE: 6
+    DISTRIBUTE: 6 // issued by broker
 };
 
 // Returns a random integer between min (included) and max (included)
@@ -165,17 +168,23 @@ function executeTransaction(transaction) {
         case transactionTypes.GAMEREGISTER:
             console.log("GAME REGISTER");
             gameRegister(transaction);
+            break;
         case transactionTypes.REVEALSECRET:
             console.log("REVEAL SECRET");
             revealSecret(transaction);
+            break;
         case transactionTypes.DISTRIBUTE:
             console.log("DISTRIBUTE");
             distribute(transaction);
+            break;
         default:
             break;
     }
 }
 
+/**
+ * A cronjob which simulates the clock for the PTC
+ */
 var cronJob = new CronJob(cronExpression, function() {
     // increment clock
     clock += 1;
