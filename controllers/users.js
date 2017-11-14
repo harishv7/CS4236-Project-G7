@@ -52,9 +52,9 @@ var update_user = function(req, res) {
     var body = _.pick(req.body, ['balance']);
     body.balance = balance;
 
-    User.findOneAndUpdate(id, {$set: body}, {new: true}).then(function(user) {
+    User.findOneAndUpdate({id}, {$set: body}, {new: true}).then(function(user) {
         if (!user) {
-            return res.status(404).send('User does not exist');
+            return res.status(404).send('User not found');
         } else {
             return res.send({user});
         }

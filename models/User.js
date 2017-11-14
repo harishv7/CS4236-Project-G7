@@ -7,7 +7,7 @@ var Schema = mongoose.Schema;
 
 var UserSchema = new Schema({
     id: {
-        type: String,
+        type: Number,
         unique: true,
         dropDups: true
     },
@@ -20,7 +20,7 @@ var UserSchema = new Schema({
     balance: {
         type: Number,
         required: true,
-        default: 0
+        default: 1000
     }
 });
 
