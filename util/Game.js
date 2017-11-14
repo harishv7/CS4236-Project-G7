@@ -59,6 +59,8 @@ class Game {
         // TODO: Check the submitted commitments. If all commitments can be opened correctly
 
         // TODO: Otherwise (someone doesn’t open the commitment)
+
+        // TODO: callback with who is winner, winning amount etc.
     }
 
     get gameState() {

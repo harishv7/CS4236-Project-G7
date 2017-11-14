@@ -132,6 +132,15 @@ function killGame(transaction) {
     delete gameRequests[gameId];
 }
 
+function distribute(transaction) {
+    const gameId = transaction.game_id;
+    var game = ongoingGames[gameId];
+    game.distribute(function(err) {
+        // TODO: callback should receiving winner details etc.
+        // TODO: publish these details to the log homepage
+    });
+}
+
 /**
  * Calls the necessary function execute based on the transaction id
  * @param {Object} transaction 
@@ -159,6 +168,9 @@ function executeTransaction(transaction) {
         case transactionTypes.REVEALSECRET:
             console.log("REVEAL SECRET");
             revealSecret(transaction);
+        case transactionTypes.DISTRIBUTE:
+            console.log("DISTRIBUTE");
+            distribute(transaction);
         default:
             break;
     }
