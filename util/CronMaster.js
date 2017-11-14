@@ -3,7 +3,7 @@ var Game = require('./Game');
 var GameStates = require('./GameStates');
 var async = require('async');
 
-// execute every minute
+// TODO: execute every minute
 const cronExpression = '*/20 * * * * *';
 
 // array containing all transactions to be served
@@ -38,7 +38,7 @@ function getRandomInt(min, max) {
  * @param {*} callback 
  */
 var addNewTransaction = function(transaction, callback) {
-    transactionQueue.unshift(transaction);
+    transactionQueue.push(transaction);
     console.log("Current transaction queue: ");
     console.log(transactionQueue);
     io.emit('newTransaction', transaction);
@@ -123,6 +123,19 @@ function revealSecret(transaction) {
     });
 }
 
+/**
+ * Expected fields in transaction: game_id
+ * @param {Object} transaction 
+ */
+function killGame(transaction) {
+    const gameId = transaction.game_id;
+    delete gameRequests[gameId];
+}
+
+/**
+ * Calls the necessary function execute based on the transaction id
+ * @param {Object} transaction 
+ */
 function executeTransaction(transaction) {
     const transactionId = parseInt(transaction.transaction_id);
     console.log(transactionId);
@@ -135,6 +148,10 @@ function executeTransaction(transaction) {
         case transactionTypes.JOINGAME:
             console.log("JOIN GAME");
             joinNewGame(transaction);
+            break;
+        case transactionTypes.KILLGAME:
+            console.log("KILL GAME");
+            killGame(transaction);
             break;
         case transactionTypes.GAMEREGISTER:
             console.log("GAME REGISTER");
@@ -175,10 +192,18 @@ var cronJob = new CronJob(cronExpression, function() {
 
                     if (game.numOfPlayers < 3) {
                         console.log("Game has fewer than 3 players. Killing game.");
-                        delete gameRequests[gameId];
+                        // initiate transaction to kill game
+                        addNewTransaction({
+                            "transaction_id": transactionTypes.KILLGAME,
+                            "game_id": gameId
+                        }, function(err) {
+                            if (err) {
+                                console.log("Some error. :/");
+                            }
+                        });
                     } else {
                         console.log("Game starting.");
-                        // increment game phase, move game into ongoing games
+                        // move game into ongoing games, delete from gameRequests
                         ongoingGames[gameId] = game;
                         delete gameRequests[gameId];
                     }
@@ -188,7 +213,6 @@ var cronJob = new CronJob(cronExpression, function() {
             callback(null);
         },
         function(callback) {
-            // TODO: increment game state of all games - both ongoing and pending
             for (var gameId in ongoingGames) {
                 ongoingGames[gameId].incrementGameState();
             }
