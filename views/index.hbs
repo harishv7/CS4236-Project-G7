@@ -1,22 +1,19 @@
-<h1>{{title}}</h1>
-<p>Welcome to {{title}}</p>
-
 <script>
     const socket = io('http://localhost:3000');
-    socket.on('connection', function(client){});
+    socket.on('connection', function(client) {});
 
     socket.emit('init');
 
     socket.on('init', (transactionQueue) => {
         console.log("initialising");
-        for(transaction in transactionQueue) {
+        for (transaction in transactionQueue) {
             document.body.innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
         }
     });
 
     socket.on('clock', (time) => {
         console.log("Received clock: " + parseInt(time));
-        document.getElementById("clockTime").innerHTML = "Clock: " + parseInt(time);
+        document.getElementById("clockTime").innerHTML = parseInt(time);
     });
 
     socket.on('newTransaction', (transaction) => {
@@ -25,10 +22,29 @@
     });
 </script>
 
-<div id="clockTime">
-
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="custom-heading">{{title}}</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div>
+                <h2 class="custom-heading">Clock</h2>
+                <h3 id="clockTime">0</h3>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div id="transction">
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Log</h2>
+            <div id="transaction">
 
+            </div>
+        </div>
+    </div>
 </div>

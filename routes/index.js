@@ -5,7 +5,7 @@ var cronMaster = require('../util/CronMaster');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('index', { title: 'Express' });
+    res.render('index', { title: 'The CupShufflers' });
 });
 
 router.get('/client', function(req, res, next) {

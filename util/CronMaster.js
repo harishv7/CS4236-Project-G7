@@ -51,7 +51,7 @@ var addNewTransaction = function(transaction, callback) {
  */
 function activateNewGame(transaction) {
     console.log("activating game.");
-    const minBidValue = parseInt(transaction.min_bid_value);
+    const minBidValue = parseInt(transaction.min_bid_amt);
     const playerId = parseInt(transaction.player_id)
 
     // create new Game with the minBidValue
@@ -87,11 +87,12 @@ function joinNewGame(transaction) {
 function gameRegister(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
-    const commitGuess = transaction.commitGuess;
-    const commitSecret = transaction.commitSecret;
+    const commitGuess = transaction.commit_guess;
+    const commitSecret = transaction.commit_secret;
+    const bidValue = transaction.bid_value;
 
     var game = ongoingGames[gameId];
-    game.gameRegister(playerId, commitGuess, commitSecret, function(err) {
+    game.gameRegister(playerId, commitGuess, commitSecret, bidValue, function(err) {
         if (err) {
             console.log(err);
         } else {
