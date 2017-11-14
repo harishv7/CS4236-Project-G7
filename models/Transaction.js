@@ -10,7 +10,7 @@ var TransactionSchema = new Schema({
         type: String,
         required: true
     },
-    sender_id: {
+    player_id: {
         type: Number,
         required: true,
         min: 1
