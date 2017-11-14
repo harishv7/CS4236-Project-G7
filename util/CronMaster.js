@@ -150,6 +150,7 @@ var cronJob = new CronJob(cronExpression, function() {
     // increment clock
     clock += 1;
     console.log("Clock: " + clock);
+    io.emit('clock', clock);
 
     async.series([
         function(callback) {

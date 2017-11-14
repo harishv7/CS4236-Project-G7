@@ -12,17 +12,14 @@ router.get('/client', function(req, res, next) {
     res.render('client');
 });
 
-/**
- * Expected params:
- */
 router.post('/send-transaction', function(req, res, next) {
-    res.render('index', { title: 'Express' });
-
     cronMaster.addNewTransaction(req.body, function(err) {
         if (err) {
             console.err("Error occurred when adding new transaction");
+            res.sendStatus(500);
         } else {
             console.log("Added new transaction successfully");
+            res.sendStatus(200);
         }
     });
 });

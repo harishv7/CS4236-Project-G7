@@ -14,8 +14,21 @@
         }
     });
 
+    socket.on('clock', (time) => {
+        console.log("Received clock: " + parseInt(time));
+        document.getElementById("clockTime").innerHTML = "Clock: " + parseInt(time);
+    });
+
     socket.on('newTransaction', (transaction) => {
         console.log("New transaction received.");
-        document.body.innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
+        document.getElementById("transaction").innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
     });
 </script>
+
+<div id="clockTime">
+
+</div>
+
+<div id="transction">
+
+</div>
