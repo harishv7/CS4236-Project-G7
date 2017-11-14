@@ -8,6 +8,10 @@ router.get('/', function(req, res, next) {
     res.render('index', { title: 'Express' });
 });
 
+router.get('/client', function(req, res, next) {
+    res.render('client');
+});
+
 /**
  * Expected params:
  */

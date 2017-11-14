@@ -61,10 +61,12 @@ class Game {
 
     set numOfPlayers(playersCount) {
         this._numOfPlayers = playersCount;
+        // TODO: SAVE TO DB
     }
 
     incrementGameState() {
         this._gameState += 1;
+        // TODO: Save to DB
     }
 }
 

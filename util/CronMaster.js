@@ -61,7 +61,7 @@ function activateNewGame(transaction) {
 }
 
 /**
- * Expected fields in transaction: game_id, player_id, player_balance
+ * Expected fields in transaction: game_id, player_id
  * @param {Object} transaction 
  */
 function joinNewGame(transaction) {
