@@ -8,9 +8,40 @@ class Game {
         this._numOfPlayers = 0;
         this._players = []; // array containing player ids
         this._gameState = GameStates.ACTIVATE;
+        this._gameRegister = {};
+        this._revealSecret = {};
     }
 
-    addNewPlayer(playerId, playerBalance, callback) {
+    gameRegister(playerId, commitGuess, commitSecret, bidValue, callback) {
+        if (this._players.indexOf(playerId) != -1) {
+            this._gameRegister[playerId] = {
+                "commitGuess": commitGuess,
+                "commitSecret": commitSecret,
+                "bidValue": bidValue
+            };
+            callback(null);
+        } else {
+            callback("Player does not exist.")
+        }
+    }
+
+    revealSecret(playerId, secret, guess, rOne, rTwo, callback) {
+        if (this._players.indexOf(playerId) != -1) {
+            this._revealSecret[playerId] = {
+                "secret": secret,
+                "guess": guess,
+                "rOne": rOne,
+                "rTwo": rTwo,
+            };
+            callback(null);
+        } else {
+            callback("Player does not exist.");
+        }
+    }
+
+    addNewPlayer(playerId, callback) {
+        // TODO: Get player balance from db
+        const playerBalance = 10000;
         if (playerBalance > this._minBidValue) {
             this._numOfPlayers += 1;
             this._players.push(playerId);

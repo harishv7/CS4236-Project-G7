@@ -32,6 +32,11 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+/**
+ * Adds new transaction into the queue
+ * @param {Objection} transaction 
+ * @param {*} callback 
+ */
 var addNewTransaction = function(transaction, callback) {
     transactionQueue.unshift(transaction);
     console.log("Current transaction queue: ");
@@ -40,11 +45,14 @@ var addNewTransaction = function(transaction, callback) {
     callback(null);
 };
 
+/**
+ * Expected fields in transaction: min_bid_value, player_id
+ * @param {Object} transaction 
+ */
 function activateNewGame(transaction) {
     console.log("activating game.");
     const minBidValue = parseInt(transaction.min_bid_value);
-    // TODO: do we need to check the initiator's balance?
-    const playerBalance = parseInt(transaction.player_balance);
+    const playerId = parseInt(transaction.player_id)
 
     // create new Game with the minBidValue
     const newGameId = ++totalGames;
@@ -52,14 +60,17 @@ function activateNewGame(transaction) {
     gameRequests[newGameId] = newGame;
 }
 
+/**
+ * Expected fields in transaction: game_id, player_id, player_balance
+ * @param {Object} transaction 
+ */
 function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
-    const playerBalance = parseInt(transaction.player_balance);
 
     if (gameId in gameRequests) {
         const game = gameRequests[gameId];
-        game.addNewPlayer(playerId, playerBalance, function(err) {
+        game.addNewPlayer(playerId, function(err) {
             if (err) {
                 console.error(err);
             } else {
@@ -67,6 +78,48 @@ function joinNewGame(transaction) {
             }
         });
     }
+}
+
+/**
+ * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess
+ * @param {Object} transaction 
+ */
+function gameRegister(transaction) {
+    const gameId = parseInt(transaction.game_id);
+    const playerId = parseInt(transaction.player_id);
+    const commitGuess = transaction.commitGuess;
+    const commitSecret = transaction.commitSecret;
+
+    var game = ongoingGames[gameId];
+    game.gameRegister(playerId, commitGuess, commitSecret, function(err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("Player " + playerId + " has registered game successfully.");
+        }
+    });
+}
+
+/**
+ * Expected fields in transaction: game_id, player_id, secret, guess, r_one, r_two
+ * @param {Object} transaction 
+ */
+function revealSecret(transaction) {
+    const gameId = parseInt(transaction.game_id);
+    const playerId = parseInt(transaction.player_id);
+    const secret = transaction.secret;
+    const guess = transaction.guess;
+    const rOne = transaction.r_one;
+    const rTwo = transaction.r_two;
+
+    var game = ongoingGames[gameId];
+    game.revealSecret(playerId, secret, guess, rOne, rTwo, function(err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("Player " + playerId + " has revealed secret.");
+        }
+    });
 }
 
 function executeTransaction(transaction) {
@@ -82,6 +135,12 @@ function executeTransaction(transaction) {
             console.log("JOIN GAME");
             joinNewGame(transaction);
             break;
+        case transactionTypes.GAMEREGISTER:
+            console.log("GAME REGISTER");
+            gameRegister(transaction);
+        case transactionTypes.REVEALSECRET:
+            console.log("REVEAL SECRET");
+            revealSecret(transaction);
         default:
             break;
     }
@@ -118,7 +177,6 @@ var cronJob = new CronJob(cronExpression, function() {
                     } else {
                         console.log("Game starting.");
                         // increment game phase, move game into ongoing games
-                        game.incrementGameState();
                         ongoingGames[gameId] = game;
                         delete gameRequests[gameId];
                     }
