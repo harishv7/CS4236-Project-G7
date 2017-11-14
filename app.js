@@ -14,7 +14,7 @@ var games = require('./routes/games');
 
 var User = require('./models/User.js');
 var Game = require('./models/Game.js');
-var Transaction = required('./models/Transaction.js');
+var Transaction = require('./models/Transaction.js');
 
 var app = express();
 
