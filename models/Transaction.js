@@ -15,7 +15,10 @@ var TransactionSchema = new Schema({
         required: true,
         min: 1
     },
-    completed: Boolean,
+    completed: {
+        type: Boolean,
+        default: false
+    },
     min_bid_value: {
         type: Number,
         min: 1
