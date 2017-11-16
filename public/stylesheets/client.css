@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat|Open+Sans:300,400');
+body {
+    font-family: 'Open Sans', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.custom-heading {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.cover-image {
+    /* background-image: url(https://cdn.pixabay.com/photo/2014/11/03/11/20/money-515058_1280.jpg) */
+}
+
+.custom-btn {
+    display: inline-block;
+    width: 200px;
+    padding: 15px;
+    margin: 5px;
+    font-size: 16px;
+    color: #000;
+    font-family: "Open Sans", Lato, Roboto, sans-serif;
+    background-color: transparent;
+    font-weight: 300;
+    border: 2px solid #000;
+    text-align: center;
+    outline: none;
+    text-decoration: none;
+}
+
+.custom-btn:hover,
+.custom-btn:active {
+    background-color: cornflowerblue;
+    border-color: #000;
+    color: #fff;
+    transition: color 0.3s ease-in, background-color 0.3s ease-in, border-color 0.3s ease-in;
+}

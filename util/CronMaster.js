@@ -4,25 +4,28 @@ var Transaction = require('../models/Transaction');
 var GameStates = require('./GameStates');
 var async = require('async');
 
-// execute every minute
+// TODO: execute every minute
 const cronExpression = '*/20 * * * * *';
 
+// games which are in progress
 var ongoingGames = {};
+
+// stores games which are pending for players to join
 var gameRequests = {};
 var totalGames = 0;
 
-// global clock
+// global clock counter
 var clock = 0;
 
 // transaction codes
 var transactionTypes = {
     ACTIVATE: 0,
     JOINGAME: 1,
-    KILLGAME: 2,
+    KILLGAME: 2, // issued by broker
     STARTGAME: 3,
     GAMEREGISTER: 4,
     REVEALSECRET: 5,
-    DISTRIBUTE: 6
+    DISTRIBUTE: 6 // issued by broker
 };
 
 // Returns a random integer between min (included) and max (included)
@@ -61,7 +64,7 @@ var addNewTransaction = function(transaction, callback) {
  */
 function activateNewGame(transaction) {
     console.log("activating game.");
-    const minBidValue = parseInt(transaction.min_bid_value);
+    const minBidValue = parseInt(transaction.min_bid_amt);
     const playerId = parseInt(transaction.player_id)
 
     // create new Game with the minBidValue
@@ -71,7 +74,7 @@ function activateNewGame(transaction) {
 }
 
 /**
- * Expected fields in transaction: game_id, player_id, player_balance
+ * Expected fields in transaction: game_id, player_id
  * @param {Object} transaction 
  */
 function joinNewGame(transaction) {
@@ -97,11 +100,12 @@ function joinNewGame(transaction) {
 function gameRegister(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
-    const commitGuess = transaction.commitGuess;
-    const commitSecret = transaction.commitSecret;
+    const commitGuess = transaction.commit_guess;
+    const commitSecret = transaction.commit_secret;
+    const bidValue = transaction.bid_value;
 
     var game = ongoingGames[gameId];
-    game.gameRegister(playerId, commitGuess, commitSecret, function(err) {
+    game.gameRegister(playerId, commitGuess, commitSecret, bidValue, function(err) {
         if (err) {
             console.log(err);
         } else {
@@ -132,6 +136,28 @@ function revealSecret(transaction) {
     });
 }
 
+/**
+ * Expected fields in transaction: game_id
+ * @param {Object} transaction 
+ */
+function killGame(transaction) {
+    const gameId = transaction.game_id;
+    delete gameRequests[gameId];
+}
+
+function distribute(transaction) {
+    const gameId = transaction.game_id;
+    var game = ongoingGames[gameId];
+    game.distribute(function(err) {
+        // TODO: callback should receiving winner details etc.
+        // TODO: publish these details to the log homepage
+    });
+}
+
+/**
+ * Calls the necessary function execute based on the transaction id
+ * @param {Object} transaction 
+ */
 function executeTransaction(transaction) {
     const transactionId = parseInt(transaction.transaction_id);
     console.log(transactionId);
@@ -145,12 +171,22 @@ function executeTransaction(transaction) {
             console.log("JOIN GAME");
             joinNewGame(transaction);
             break;
+        case transactionTypes.KILLGAME:
+            console.log("KILL GAME");
+            killGame(transaction);
+            break;
         case transactionTypes.GAMEREGISTER:
             console.log("GAME REGISTER");
             gameRegister(transaction);
+            break;
         case transactionTypes.REVEALSECRET:
             console.log("REVEAL SECRET");
             revealSecret(transaction);
+            break;
+        case transactionTypes.DISTRIBUTE:
+            console.log("DISTRIBUTE");
+            distribute(transaction);
+            break;
         default:
             break;
     }
@@ -161,10 +197,14 @@ function executeTransaction(transaction) {
     });
 }
 
+/**
+ * A cronjob which simulates the clock for the PTC
+ */
 var cronJob = new CronJob(cronExpression, function() {
     // increment clock
     clock += 1;
     console.log("Clock: " + clock);
+    io.emit('clock', clock);
 
     async.series([
         function(callback) {
@@ -188,10 +228,18 @@ var cronJob = new CronJob(cronExpression, function() {
 
                     if (game.numOfPlayers < 3) {
                         console.log("Game has fewer than 3 players. Killing game.");
-                        delete gameRequests[gameId];
+                        // initiate transaction to kill game
+                        addNewTransaction({
+                            "transaction_id": transactionTypes.KILLGAME,
+                            "game_id": gameId
+                        }, function(err) {
+                            if (err) {
+                                console.log("Some error. :/");
+                            }
+                        });
                     } else {
                         console.log("Game starting.");
-                        // increment game phase, move game into ongoing games
+                        // move game into ongoing games, delete from gameRequests
                         ongoingGames[gameId] = game;
                         delete gameRequests[gameId];
                     }
@@ -201,7 +249,6 @@ var cronJob = new CronJob(cronExpression, function() {
             callback(null);
         },
         function(callback) {
-            // TODO: increment game state of all games - both ongoing and pending
             for (var gameId in ongoingGames) {
                 ongoingGames[gameId].incrementGameState();
             }

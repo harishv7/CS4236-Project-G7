@@ -13,6 +13,9 @@ class Game {
     }
 
     gameRegister(playerId, commitGuess, commitSecret, bidValue, callback) {
+        // TODO: Subtracts $bid_value from user Pi. Adds $bid_value to Broker
+
+        // Store Commit(s,r1), Commit(guess,r2), bid_value in some arrays
         if (this._players.indexOf(playerId) != -1) {
             this._gameRegister[playerId] = {
                 "commitGuess": commitGuess,
@@ -26,6 +29,7 @@ class Game {
     }
 
     revealSecret(playerId, secret, guess, rOne, rTwo, callback) {
+        // Store (s, r1, guess, r2) in some arrays.
         if (this._players.indexOf(playerId) != -1) {
             this._revealSecret[playerId] = {
                 "secret": secret,
@@ -49,6 +53,14 @@ class Game {
         } else {
             callback("Player has insufficient funds to join game.");
         }
+    }
+
+    distribute(callback) {
+        // TODO: Check the submitted commitments. If all commitments can be opened correctly
+
+        // TODO: Otherwise (someone doesn’t open the commitment)
+
+        // TODO: callback with who is winner, winning amount etc.
     }
 
     get gameState() {

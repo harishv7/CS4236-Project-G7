@@ -1,11 +1,12 @@
 var gameStates = {
     ACTIVATE: 0,
     PLAYERS_JOIN: 1,
-    GAME_START: 2,
-    GAME_REGISTER: 3,
-    REVEAL_SECRET: 4,
-    DISTRIBUTE: 5,
-    COMPLETED: 6
+    GAME_KILLED: 2,
+    GAME_START: 3,
+    GAME_REGISTER: 4,
+    REVEAL_SECRET: 5,
+    DISTRIBUTE: 6,
+    COMPLETED: 7
 };
 
 module.exports = gameStates;
