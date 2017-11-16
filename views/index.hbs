@@ -18,7 +18,7 @@
 
     socket.on('newTransaction', (transaction) => {
         console.log("New transaction received.");
-        document.getElementById("transaction").innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
+        document.getElementById("incomingTransactions").innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
     });
 </script>
 
@@ -50,6 +50,9 @@
                             {{this}}
                         </div>
                     {{/each}}
+                    <div id="incomingTransactions">
+                        <!-- Display new incoming transactiosn -->
+                    </div>
                 </div>
             </div>
         </div>
