@@ -16,32 +16,39 @@ var GameSchema = new Schema({
         required: true,
         min: 0
     },
-    start_time: Number,
+    start_time: Number,  // if we change to epoch, is it still number? or is it Date? Is there a DateTime?
     state: {
         type: Number,
         required: true,
         default: 0
     },
+    // We don't need num_of_players, do we?
     players: {
         type: [Number],
         default: []
     },
-    game_registers: [{
-        player_id: Number,
-        secret_commit: String,
-        guess_commit: String,
-        bid_value: {
-            type: Number,
-            min: 1
-        }
-    }],
-    reveal_secrets: [{
-        player_id: Number,
-        secret: Number,
-        r_one: String,
-        guess: Number,
-        r_two: String
-    }]
+    game_registers: {
+        type: [{
+            player_id: Number,
+            secret_commit: String,
+            guess_commit: String,
+            bid_value: {
+                type: Number,
+                min: 1
+            }
+        }],
+        default: []
+    },
+    reveal_secrets: {
+        type: [{
+            player_id: Number,
+            secret: Number,
+            r_one: String,
+            guess: Number,
+            r_two: String
+        }],
+        default: []
+    }
 });
 
 GameSchema.plugin(autoIncrement.plugin, { model: 'Game', field: 'id', startAt: 1 });
