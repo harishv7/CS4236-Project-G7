@@ -39,6 +39,7 @@ function getRandomInt(min, max) {
  * @param {*} callback 
  */
 var addNewTransaction = function(transaction, callback) {
+    // TODO: Validate transaction_id and player_id
     var newTransaction = new Transaction({
         transaction_id: transaction.transaction_id,
         player_id: transaction.player_id,
@@ -46,7 +47,7 @@ var addNewTransaction = function(transaction, callback) {
     });
     newTransaction.save(function(err, updatedTransaction) {
         if (err) callback("Error when saving a Transaction document");
-        io.emit('newTransaction', updatedTransaction);
+        io.emit("newTransaction", updatedTransaction);
     });
     Transaction.find({}, function(err, transactions) {
         if (!err) {
@@ -194,6 +195,7 @@ function executeTransaction(transaction) {
     transaction.completed = true;
     transaction.save(function(err, updatedTransaction) {
         if (err) console.log(err);
+        // TODO: io.emit to update the log
     });
 }
 
@@ -277,6 +279,8 @@ var cronJob = new CronJob(cronExpression, function() {
                         console.log(transactionQueue[randomIndex]);
 
                         executeTransaction(transactionQueue[randomIndex]);
+
+                        transactionQueue.splice(randomIndex, 1);
                     }
 
                     callback(null);
