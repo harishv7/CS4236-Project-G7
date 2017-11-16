@@ -2,15 +2,21 @@ var express = require('express');
 var router = express.Router();
 
 var Transaction = require('../models/Transaction');
+var Game = require('../models/Game');
 
 var cronMaster = require('../util/CronMaster');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
+    // TODO: Ask Harish -- how to beautify this disgusting nested calls
     Transaction.find({}, function(err, transactions) {
-        if (!err) {
-            res.render('index', { title: 'The CupShufflers', transactions: transactions});
-        }
+        if (err) console.error(err);
+
+        Game.find({}, function(err, games) {
+            if (err) console.error(err);
+
+            res.render('index', { title: 'The CupShufflers', transactions: transactions, games: games});
+        });
     });
 });
 
