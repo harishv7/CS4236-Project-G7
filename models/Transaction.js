@@ -6,7 +6,7 @@ autoIncrement.initialize(mongoose.connection);
 var Schema = mongoose.Schema;
 
 var TransactionSchema = new Schema({
-    transaction_type: {
+    transaction_id: {
         type: String,
         required: true
     },
@@ -15,6 +15,7 @@ var TransactionSchema = new Schema({
         required: true,
         min: 1
     },
+    completed: Boolean,
     min_bid_value: {
         type: Number,
         min: 1

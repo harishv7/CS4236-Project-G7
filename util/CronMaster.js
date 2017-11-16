@@ -1,13 +1,11 @@
 var CronJob = require('cron').CronJob;
 var Game = require('./Game');
+var Transaction = require('../models/Transaction');
 var GameStates = require('./GameStates');
 var async = require('async');
 
 // execute every minute
 const cronExpression = '*/20 * * * * *';
-
-// array containing all transactions to be served
-var transactionQueue = [];
 
 var ongoingGames = {};
 var gameRequests = {};
@@ -34,15 +32,27 @@ function getRandomInt(min, max) {
 
 /**
  * Adds new transaction into the queue
- * @param {Objection} transaction 
+ * @param {Object} transaction
  * @param {*} callback 
  */
 var addNewTransaction = function(transaction, callback) {
-    transactionQueue.unshift(transaction);
-    console.log("Current transaction queue: ");
-    console.log(transactionQueue);
-    io.emit('newTransaction', transaction);
-    callback(null);
+    var newTransaction = new Transaction({
+        transaction_id: transaction.transaction_id,
+        player_id: transaction.player_id,
+        completed: false
+    });
+    newTransaction.save(function(err, updatedTransaction) {
+        if (err) callback("Error when saving a Transaction document");
+        io.emit('newTransaction', updatedTransaction);
+    });
+    Transaction.find({}, function(err, transactions) {
+        if (!err) {
+            transactionQueue = transactions;
+            console.log("Current transaction queue: ");
+            console.log(transactionQueue);
+            callback(null);
+        }
+    });
 };
 
 /**
@@ -144,6 +154,11 @@ function executeTransaction(transaction) {
         default:
             break;
     }
+
+    transaction.completed = true;
+    transaction.save(function(err, updatedTransaction) {
+        if (err) console.log(err);
+    });
 }
 
 var cronJob = new CronJob(cronExpression, function() {
@@ -199,20 +214,27 @@ var cronJob = new CronJob(cronExpression, function() {
         },
         function(callback) {
             // in every time block, we execute all pending transactions in the queue
-            while (transactionQueue.length > 0) {
-                const lengthOfQueue = transactionQueue.length;
-                const randomIndex = getRandomInt(0, lengthOfQueue - 1);
+            // Comment: [Teddy] I'm not sure if I'm doing it right... But when I code in NodeJS this is what always
+            // happen... Things are deeply nested. Leave me any suggestions if you have
+            var transactionQueue;
+            Transaction.find({completed: false}, function(err, transactions) {
+                if (!err) {
+                    transactionQueue = transactions;
 
-                // serve transaction
-                console.log("Executing transaction:");
-                console.log(transactionQueue[randomIndex]);
+                    while (transactionQueue.length > 0) {
+                        const lengthOfQueue = transactionQueue.length;
+                        const randomIndex = getRandomInt(0, lengthOfQueue - 1);
 
-                executeTransaction(transactionQueue[randomIndex]);
+                        // serve transaction
+                        console.log("Executing transaction:");
+                        console.log(transactionQueue[randomIndex]);
 
-                transactionQueue.splice(randomIndex, 1);
-            }
+                        executeTransaction(transactionQueue[randomIndex]);
+                    }
 
-            callback(null);
+                    callback(null);
+                }
+            });
         }
     ]);
 }, function() {
@@ -223,7 +245,7 @@ var cronJob = new CronJob(cronExpression, function() {
 var startCronjob = function() {
     console.log("Starting cron job.");
     cronJob.start();
-}
+};
 
 module.exports = {
     startCronjob,
