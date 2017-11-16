@@ -16,10 +16,7 @@ var GameSchema = new Schema({
         required: true,
         min: 0
     },
-    start_time: {
-        type: Date,
-        required: true
-    },
+    start_time: Number,
     state: {
         type: Number,
         required: true,
