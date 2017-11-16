@@ -1,11 +1,17 @@
 var express = require('express');
 var router = express.Router();
 
+var Transaction = require('../models/Transaction');
+
 var cronMaster = require('../util/CronMaster');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('index', { title: 'The CupShufflers' });
+    Transaction.find({}, function(err, transactions) {
+        if (!err) {
+            res.render('index', { title: 'The CupShufflers', transactions: transactions});
+        }
+    });
 });
 
 router.get('/client', function(req, res, next) {
