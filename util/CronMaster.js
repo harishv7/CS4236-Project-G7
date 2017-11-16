@@ -22,6 +22,8 @@ var currentTime = new Date();
 var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
 var clock = Math.ceil(diffInSeconds / clockDuration);
 
+// TODO: intialise clock on log homepage when server starts
+
 // transaction codes
 var transactionTypes = {
     ACTIVATE: 0,
@@ -234,8 +236,8 @@ var cronJob = new CronJob(cronExpression, function() {
     async.series([
         function(callback) {
             // in every time block, we execute all pending transactions in the queue
-            // Comment: [Teddy] I'm not sure if I'm doing it right... But when I code in NodeJS this is what always
-            // happen... Things are deeply nested. Leave me any suggestions if you have
+            // TODO: If a current transaction does not belong to the state yet, we put it back into the queue
+            // Invalid transactions can be removed such as join game when game is in middle of gameregister state
             var transactionQueue;
             Transaction.find({ completed: false }, function(err, transactions) {
                 if (!err) {
