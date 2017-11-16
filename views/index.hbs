@@ -18,7 +18,7 @@
 
     socket.on('newTransaction', (transaction) => {
         console.log("New transaction received.");
-        document.getElementById("transaction").innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
+        document.getElementById("incomingTransactions").innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
     });
 </script>
 
@@ -41,9 +41,37 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h2>Log</h2>
-            <div id="transaction">
+            <h2>Transactions log</h2>
+            <div id="transactions">
+                <div class="card">
+                    {{#each transactions}}
+                        <div class="card-block">
+                            <!-- TODO: completed and incomplete transactions should be rendered differently -->
+                            {{this}}
+                        </div>
+                    {{/each}}
+                    <div id="incomingTransactions">
+                        <!-- Display new incoming transactiosn -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Games log</h2>
+            <div id="games">
+                <div class="card">
+                    {{#each games}}
+                        <div class="card-block">
+                            <!-- TODO: completed and incomplete games should be rendered differently -->
+                            {{this}}
+                        </div>
+                    {{/each}}
+                </div>
             </div>
         </div>
     </div>

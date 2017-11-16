@@ -1,13 +1,12 @@
 var CronJob = require('cron').CronJob;
-var Game = require('./Game');
+var Game = require('../models/Game');
+var Transaction = require('../models/Transaction');
 var GameStates = require('./GameStates');
 var async = require('async');
 
 // TODO: execute every minute
-const cronExpression = '*/20 * * * * *';
-
-// array containing all transactions to be served
-var transactionQueue = [];
+const clockDuration = 20;
+const cronExpression = '*/' + String(clockDuration) + ' * * * * *';
 
 // games which are in progress
 var ongoingGames = {};
@@ -17,7 +16,11 @@ var gameRequests = {};
 var totalGames = 0;
 
 // global clock counter
-var clock = 0;
+// genesis is 16 Nov 2017, 16:20.5 GMT
+var genesis = new Date(1510849205000);
+var currentTime = new Date();
+var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
+var clock = Math.ceil(diffInSeconds / clockDuration);
 
 // transaction codes
 var transactionTypes = {
@@ -37,15 +40,19 @@ function getRandomInt(min, max) {
 
 /**
  * Adds new transaction into the queue
- * @param {Objection} transaction 
+ * @param {Object} transaction
  * @param {*} callback 
  */
 var addNewTransaction = function(transaction, callback) {
-    transactionQueue.push(transaction);
-    console.log("Current transaction queue: ");
-    console.log(transactionQueue);
-    io.emit('newTransaction', transaction);
-    callback(null);
+    // TODO: Validate transaction_id and player_id
+    var newTransaction = new Transaction(transaction);
+    newTransaction.save(function(err, updatedTransaction) {
+        if (err) callback("Error when saving a Transaction document");
+        io.emit("newTransaction", updatedTransaction);
+        console.log("Added to transaction queue: ");
+        console.log(newTransaction);
+        callback(null);
+    });
 };
 
 /**
@@ -54,13 +61,18 @@ var addNewTransaction = function(transaction, callback) {
  */
 function activateNewGame(transaction) {
     console.log("activating game.");
-    const minBidValue = parseInt(transaction.min_bid_amt);
-    const playerId = parseInt(transaction.player_id)
+    const minBidValue = parseInt(transaction.min_bid_value);
+    const playerId = parseInt(transaction.player_id);
 
-    // create new Game with the minBidValue
-    const newGameId = ++totalGames;
-    var newGame = new Game(newGameId, minBidValue);
-    gameRequests[newGameId] = newGame;
+    Game.create({
+        min_bid_value: minBidValue,
+        start_time: clock
+    }, function(err, game) {
+        if (err) console.error(err);
+        else {
+            console.log("Initialised new game: " + game.id + ", minBid: " + game.min_bid_value);
+        }
+    });
 }
 
 /**
@@ -71,16 +83,24 @@ function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
 
-    if (gameId in gameRequests) {
-        const game = gameRequests[gameId];
-        game.addNewPlayer(playerId, function(err) {
-            if (err) {
-                console.error(err);
-            } else {
-                console.log(playerId + " has joined " + gameId);
-            }
-        });
-    }
+    Game.findOne({ id: gameId }, function(err, game) {
+        if (err) console.error(err);
+
+        if (game.state == GameStates.ACTIVATE) {
+            game.players.push(playerId);
+            game.save(function(err, updatedGame) {
+                // TODO: might need to io.emit
+                if (err) {
+                    console.error(err);
+                } else {
+                    console.log(playerId + " has joined " + gameId);
+                }
+            })
+        } else {
+            console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
+                GameStates[game.state]);
+        }
+    });
 }
 
 /**
@@ -94,10 +114,9 @@ function gameRegister(transaction) {
     const commitSecret = transaction.commit_secret;
     const bidValue = transaction.bid_value;
 
-    var game = ongoingGames[gameId];
     game.gameRegister(playerId, commitGuess, commitSecret, bidValue, function(err) {
         if (err) {
-            console.log(err);
+            console.error(err);
         } else {
             console.log("Player " + playerId + " has registered game successfully.");
         }
@@ -132,7 +151,19 @@ function revealSecret(transaction) {
  */
 function killGame(transaction) {
     const gameId = transaction.game_id;
-    delete gameRequests[gameId];
+    Game.find({ id: gameId }, function(err, game) {
+        if (err) console.error(err);
+
+        if (game.state == GameStates.PLAYERS_JOIN) {
+            game.state = GameStates.GAME_KILLED;
+            game.save(function(err, updatedGame) {
+                if (err) console.error(err);
+                else console.log("Game " + gameId + " was killed.")
+            });
+        } else {
+            console.log("Tried to kill game " + gameId + ". But, the game is in state" + GameStates[game.state]);
+        }
+    });
 }
 
 function distribute(transaction) {
@@ -166,20 +197,29 @@ function executeTransaction(transaction) {
             killGame(transaction);
             break;
         case transactionTypes.GAMEREGISTER:
-            console.log("GAME REGISTER");
-            gameRegister(transaction);
+            // TODO: Not yet supported using DB
+            // console.log("GAME REGISTER");
+            // gameRegister(transaction);
             break;
         case transactionTypes.REVEALSECRET:
-            console.log("REVEAL SECRET");
-            revealSecret(transaction);
+            // TODO: Not yet supported using DB
+            // console.log("REVEAL SECRET");
+            // revealSecret(transaction);
             break;
         case transactionTypes.DISTRIBUTE:
-            console.log("DISTRIBUTE");
-            distribute(transaction);
+            // TODO: Not yet supported using DB
+            // console.log("DISTRIBUTE");
+            // distribute(transaction);
             break;
         default:
             break;
     }
+
+    transaction.completed = true;
+    transaction.save(function(err, updatedTransaction) {
+        if (err) console.log(err);
+        // TODO: io.emit to update the log
+    });
 }
 
 /**
@@ -193,72 +233,81 @@ var cronJob = new CronJob(cronExpression, function() {
 
     async.series([
         function(callback) {
+            // in every time block, we execute all pending transactions in the queue
+            // Comment: [Teddy] I'm not sure if I'm doing it right... But when I code in NodeJS this is what always
+            // happen... Things are deeply nested. Leave me any suggestions if you have
+            var transactionQueue;
+            Transaction.find({ completed: false }, function(err, transactions) {
+                if (!err) {
+                    transactionQueue = transactions;
+
+                    while (transactionQueue.length > 0) {
+                        const lengthOfQueue = transactionQueue.length;
+                        const randomIndex = getRandomInt(0, lengthOfQueue - 1);
+
+                        // serve transaction
+                        console.log("Executing transaction:");
+                        console.log(transactionQueue[randomIndex]);
+
+                        executeTransaction(transactionQueue[randomIndex]);
+
+                        transactionQueue.splice(randomIndex, 1);
+                    }
+
+                    callback(null);
+                }
+            });
+        },
+        function(callback) {
             // check on all pending game requests to see if enough players have joined
-            for (var gameId in gameRequests) {
-                console.log(gameId);
-                const game = gameRequests[gameId];
-                console.log(game);
-                const gameState = parseInt(game.gameState);
+            Game.find({ state: { $eq: GameStates.PLAYERS_JOIN } }, function(err, gameRequests) {
+                if (err) console.error(err);
 
-                console.log("Game state: " + gameState);
-                console.log(GameStates.JOINGAME);
+                gameRequests.forEach(function(game) {
+                    console.log(game);
 
-                // if the previous state was to join game, we check if sufficient players have joined
-                if (gameState === 1) {
+                    // if the previous state was to join game, we check if sufficient players have joined
                     console.log("Checking Join Game");
-                    console.log(gameRequests);
 
-                    console.log("Checking on game id: " + gameId);
-                    console.log("Number of players: " + game.numOfPlayers);
+                    console.log("Checking on game:\n" + game);
+                    console.log("Number of players: " + game.players.length);
 
-                    if (game.numOfPlayers < 3) {
+                    if (game.players.length < 3) {
                         console.log("Game has fewer than 3 players. Killing game.");
                         // initiate transaction to kill game
                         addNewTransaction({
                             "transaction_id": transactionTypes.KILLGAME,
-                            "game_id": gameId
+                            "game_id": game.id
                         }, function(err) {
                             if (err) {
                                 console.log("Some error. :/");
                             }
                         });
                     } else {
-                        console.log("Game starting.");
-                        // move game into ongoing games, delete from gameRequests
-                        ongoingGames[gameId] = game;
-                        delete gameRequests[gameId];
+                        game.state = GameStates.GAME_START;
+                        game.save(function(err, updatedGame) {
+                            if (err) console.error(err);
+                            else {
+                                console.log("Game starting.");
+                            }
+                        });
                     }
-                }
-            }
+                });
 
-            callback(null);
+                callback(null);
+            });
         },
         function(callback) {
-            for (var gameId in ongoingGames) {
-                ongoingGames[gameId].incrementGameState();
-            }
+            Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $ne: GameStates.GAME_KILLED } }, function(err, ongoingGames) {
+                if (err) console.error(err);
 
-            for (var gameId in gameRequests) {
-                gameRequests[gameId].incrementGameState();
-            }
-
-            callback(null);
-        },
-        function(callback) {
-            // in every time block, we execute all pending transactions in the queue
-            while (transactionQueue.length > 0) {
-                const lengthOfQueue = transactionQueue.length;
-                const randomIndex = getRandomInt(0, lengthOfQueue - 1);
-
-                // serve transaction
-                console.log("Executing transaction:");
-                console.log(transactionQueue[randomIndex]);
-
-                executeTransaction(transactionQueue[randomIndex]);
-
-                transactionQueue.splice(randomIndex, 1);
-            }
-
+                ongoingGames.forEach(function(game) {
+                    game.state += 1;
+                    game.save(function(err, updatedGame) {
+                        if (err) console.error(err);
+                    });
+                });
+            });
             callback(null);
         }
     ]);
@@ -270,7 +319,7 @@ var cronJob = new CronJob(cronExpression, function() {
 var startCronjob = function() {
     console.log("Starting cron job.");
     cronJob.start();
-}
+};
 
 module.exports = {
     startCronjob,

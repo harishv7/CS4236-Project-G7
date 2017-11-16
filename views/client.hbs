@@ -34,7 +34,7 @@
                     $.post("http://localhost:3000/send-transaction", {
                         "transaction_id": 0,
                         "player_id": playerId,
-                        "min_bid_amt": minBidAmt
+                        "min_bid_value": minBidAmt
                     });
                 });
 
@@ -46,7 +46,7 @@
                     $.post("http://localhost:3000/send-transaction", {
                         "transaction_id": 1,
                         "player_id": playerId,
-                        "game_id": minBidAmt
+                        "game_id": gameId
                     });
                 });
 
