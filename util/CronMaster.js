@@ -5,7 +5,8 @@ var GameStates = require('./GameStates');
 var async = require('async');
 
 // TODO: execute every minute
-const cronExpression = '*/20 * * * * *';
+const clockDuration = 20;
+const cronExpression = '*/' + String(clockDuration) + ' * * * * *';
 
 // games which are in progress
 var ongoingGames = {};
@@ -15,8 +16,11 @@ var gameRequests = {};
 var totalGames = 0;
 
 // global clock counter
-// TODO: I think start time should use epoch
-var clock = 0;
+// genesis is 16 Nov 2017, 16:20.5 GMT
+var genesis = new Date(1510849205000);
+var currentTime = new Date();
+var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
+var clock = Math.ceil(diffInSeconds / clockDuration);
 
 // transaction codes
 var transactionTypes = {
@@ -64,10 +68,10 @@ function activateNewGame(transaction) {
         min_bid_value: minBidValue,
         start_time: clock
     }, function(err, game) {
-       if (err) console.error(err);
-       else {
-           console.log("Initialised new game: " + game.id + ", minBid: " + game.min_bid_value);
-       }
+        if (err) console.error(err);
+        else {
+            console.log("Initialised new game: " + game.id + ", minBid: " + game.min_bid_value);
+        }
     });
 }
 
@@ -79,7 +83,7 @@ function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
 
-    Game.findOne({id: gameId}, function(err, game) {
+    Game.findOne({ id: gameId }, function(err, game) {
         if (err) console.error(err);
 
         if (game.state == GameStates.ACTIVATE) {
@@ -93,8 +97,8 @@ function joinNewGame(transaction) {
                 }
             })
         } else {
-            console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state "
-                + GameStates[game.state]);
+            console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
+                GameStates[game.state]);
         }
     });
 }
@@ -147,18 +151,18 @@ function revealSecret(transaction) {
  */
 function killGame(transaction) {
     const gameId = transaction.game_id;
-    Game.find({id: gameId}, function(err, game) {
-       if (err) console.error(err);
+    Game.find({ id: gameId }, function(err, game) {
+        if (err) console.error(err);
 
-       if (game.state == GameStates.PLAYERS_JOIN) {
-           game.state = GameStates.GAME_KILLED;
-           game.save(function(err, updatedGame) {
-               if (err) console.error(err);
-               else console.log("Game " + gameId + " was killed.")
-           });
-       } else {
-           console.log("Tried to kill game " + gameId + ". But, the game is in state" + GameStates[game.state]);
-       }
+        if (game.state == GameStates.PLAYERS_JOIN) {
+            game.state = GameStates.GAME_KILLED;
+            game.save(function(err, updatedGame) {
+                if (err) console.error(err);
+                else console.log("Game " + gameId + " was killed.")
+            });
+        } else {
+            console.log("Tried to kill game " + gameId + ". But, the game is in state" + GameStates[game.state]);
+        }
     });
 }
 
@@ -233,7 +237,7 @@ var cronJob = new CronJob(cronExpression, function() {
             // Comment: [Teddy] I'm not sure if I'm doing it right... But when I code in NodeJS this is what always
             // happen... Things are deeply nested. Leave me any suggestions if you have
             var transactionQueue;
-            Transaction.find({completed: false}, function(err, transactions) {
+            Transaction.find({ completed: false }, function(err, transactions) {
                 if (!err) {
                     transactionQueue = transactions;
 
@@ -256,7 +260,7 @@ var cronJob = new CronJob(cronExpression, function() {
         },
         function(callback) {
             // check on all pending game requests to see if enough players have joined
-            Game.find({state: {$eq: GameStates.PLAYERS_JOIN}}, function(err, gameRequests) {
+            Game.find({ state: { $eq: GameStates.PLAYERS_JOIN } }, function(err, gameRequests) {
                 if (err) console.error(err);
 
                 gameRequests.forEach(function(game) {
@@ -294,7 +298,7 @@ var cronJob = new CronJob(cronExpression, function() {
             });
         },
         function(callback) {
-            Game.find({state: {$gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $ne: GameStates.GAME_KILLED}}, function(err, ongoingGames) {
+            Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $ne: GameStates.GAME_KILLED } }, function(err, ongoingGames) {
                 if (err) console.error(err);
 
                 ongoingGames.forEach(function(game) {
