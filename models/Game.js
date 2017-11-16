@@ -11,7 +11,7 @@ var GameSchema = new Schema({
         unique: true,
         dropDups: true
     },
-    min_bid: {
+    min_bid_value: {
         type: Number,
         required: true,
         min: 0
@@ -25,23 +25,25 @@ var GameSchema = new Schema({
         required: true,
         default: 0
     },
-    players: [Number],
-    game_register: [{
-        player_id: {
+    players: {
+        type: [Number],
+        default: []
+    },
+    game_registers: [{
+        player_id: Number,
+        secret_commit: String,
+        guess_commit: String,
+        bid_value: {
             type: Number,
-        },
-        secret: {
-            type: Number
-        },
-        guess: {
-            type: Number
-        },
-        r_one: {
-            type: Number
-        },
-        r_two: {
-            type: Number
+            min: 1
         }
+    }],
+    reveal_secrets: [{
+        player_id: Number,
+        secret: Number,
+        r_one: String,
+        guess: Number,
+        r_two: String
     }]
 });
 
