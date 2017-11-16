@@ -45,14 +45,9 @@ var addNewTransaction = function(transaction, callback) {
     newTransaction.save(function(err, updatedTransaction) {
         if (err) callback("Error when saving a Transaction document");
         io.emit("newTransaction", updatedTransaction);
-    });
-    Transaction.find({}, function(err, transactions) {
-        if (!err) {
-            transactionQueue = transactions;
-            console.log("Current transaction queue: ");
-            console.log(transactionQueue);
-            callback(null);
-        }
+        console.log("Added to transaction queue: ");
+        console.log(newTransaction);
+        callback(null);
     });
 };
 
@@ -65,7 +60,6 @@ function activateNewGame(transaction) {
     const minBidValue = parseInt(transaction.min_bid_value);
     const playerId = parseInt(transaction.player_id);
 
-    // TODO: Currently there's a delay between game ACTIVATE and PLAYERS_JOIN. Let's discuss about this
     Game.create({
         min_bid_value: minBidValue,
         start_time: clock
@@ -85,10 +79,10 @@ function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
 
-    Game.find({id: gameId}, function(err, game) {
+    Game.findOne({id: gameId}, function(err, game) {
         if (err) console.error(err);
 
-        if (game.state == GameStates.PLAYERS_JOIN) {
+        if (game.state == GameStates.ACTIVATE) {
             game.players.push(playerId);
             game.save(function(err, updatedGame) {
                 // TODO: might need to io.emit
@@ -286,11 +280,7 @@ var cronJob = new CronJob(cronExpression, function() {
                             }
                         });
                     } else {
-                        /*
-                         * TODO: question -- do we send a transaction to start game first or immediately switch to
-                         * GAME_REGISTER mode?
-                         */
-                        game.state = GameStates.GAME_REGISTER;
+                        game.state = GameStates.GAME_START;
                         game.save(function(err, updatedGame) {
                             if (err) console.error(err);
                             else {

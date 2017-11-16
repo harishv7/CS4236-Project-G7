@@ -1,3 +1,8 @@
+/*
+ * NOTE: If a game is at state X, it means that game has gone through state X, NOT
+ * the game is now in state X.
+ */
+
 var gameStates = {
     ACTIVATE: 0,
     PLAYERS_JOIN: 1,
