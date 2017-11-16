@@ -25,17 +25,6 @@ var GameSchema = new Schema({
         required: true,
         default: 0
     },
-    completed: {
-        type: Boolean,
-        required: true,
-        default: false
-    },
-    num_of_players: {
-        type: Number,
-        required: true,
-        default: 0,
-        min: 0
-    },
     players: [Number],
     game_register: [{
         player_id: {

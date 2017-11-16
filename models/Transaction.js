@@ -31,9 +31,9 @@ var TransactionSchema = new Schema({
         min: 1
     },
     secret: Number,
-    r1: String,
+    r_one: String,
     guess: Number,
-    r2: String
+    r_two: String
 });
 
 TransactionSchema.plugin(autoIncrement.plugin, { model: 'Transaction', field: 'id', startAt: 1 });
