@@ -10,8 +10,8 @@ router.get('/', gameController.displayGames);
 router.post('/activate', gameController.activateGame);
 router.post('/add-player', gameController.addPlayer);
 
-router.patch('/game-register', gameController.gameRegister);
-router.patch('/:id', gameController.updateGameStatus);
+router.patch('/:id/game-register', gameController.gameRegister);
+router.patch('/:id', gameController.updateGameState);
 
 router.delete('/:id', gameController.deleteGame);
 
