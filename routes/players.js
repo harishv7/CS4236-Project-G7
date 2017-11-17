@@ -1,17 +1,17 @@
 var express = require('express');
 var router = express.Router();
 
-var player_controller = require('./../controllers/players');
+var playerController = require('./../controllers/players');
 
 
-router.get('/:id', player_controller.display_player);
-router.get('/', player_controller.display_players);
+router.get('/:id', playerController.displayPlayer);
+router.get('/', playerController.displayPlayers);
 
-router.post('/', player_controller.create_player);
+router.post('/', playerController.createPlayer);
 
-router.patch('/:id', player_controller.update_player);
+router.patch('/:id', playerController.updatePlayer);
 
-router.delete('/:id', player_controller.delete_player);
+router.delete('/:id', playerController.deletePlayer);
 
 
 module.exports = router;

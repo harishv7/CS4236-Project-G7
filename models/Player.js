@@ -5,7 +5,6 @@ autoIncrement.initialize(mongoose.connection);
 
 var Schema = mongoose.Schema;
 
-// TODO: Change Player to Player? To make it consistent with other parts of the code
 var PlayerSchema = new Schema({
     id: {
         type: Number,

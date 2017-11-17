@@ -2,7 +2,7 @@ var _ = require('lodash');
 var mongoose = require('mongoose');
 var Game = require('./../models/Game');
 
-var display_game = function(req, res) {
+var displayGame = function(req, res) {
     var id = req.params.id;
 
     Game.findOne({id}).then(function(game) {
@@ -17,7 +17,7 @@ var display_game = function(req, res) {
 };
 
 
-var display_games = function(req, res) {
+var displayGames = function(req, res) {
     Game.find().then(function(games) {
         if (games.length == 0) {
             return res.status(404).send('No games found');
@@ -30,7 +30,7 @@ var display_games = function(req, res) {
 };
 
 
-var activate = function(req, res) {
+var activateGame = function(req, res) {
     let game = new Game({
         min_bid_value: req.body.min_bid_value,
         start_time: Date.now()
@@ -44,7 +44,7 @@ var activate = function(req, res) {
     });
 };
 
-var add_player = function(req, res) {
+var addPlayer = function(req, res) {
     var body = _.pick(req.body, ['game_id', 'player_id']);
 
     Game.findOneAndUpdate({id: body.game_id}, {$push: {players: body.player_id}}, {new: true}).then(function(game) {
@@ -59,7 +59,7 @@ var add_player = function(req, res) {
     });
 };
 
-var game_register = function(req, res) {
+var gameRegister = function(req, res) {
     var body = _.pick(req.body, ['game_id', 'player_id', 'secret', 'guess', 'r_one', 'r_two']);
     var player_id = body.player_id;
 
@@ -84,7 +84,7 @@ var game_register = function(req, res) {
     });
 }
 
-var update_game_state = function(req, res) {
+var updateGameState = function(req, res) {
     var id = req.params.id;
 
     var body = _.pick(req.body, ['state']);
@@ -108,7 +108,7 @@ var update_game_state = function(req, res) {
 };
 
 
-var delete_game = function(req, res) {
+var deleteGame = function(req, res) {
     var id = req.params.id;
 
     Game.findOneAndRemove({id}).then(function(game) {
@@ -124,11 +124,11 @@ var delete_game = function(req, res) {
 
 
 module.exports = {
-    display_game,
-    display_games,
-    activate,
-    add_player,
-    game_register,
-    update_game_state,
-    delete_game
+    displayGame,
+    displayGames,
+    activateGame,
+    addPlayer,
+    gameRegister,
+    updateGameState,
+    deleteGame
 }

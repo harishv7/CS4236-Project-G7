@@ -1,19 +1,19 @@
 var express = require('express');
 var router = express.Router();
 
-var game_controller = require('./../controllers/games');
+var gameController = require('./../controllers/games');
 
 
-router.get('/:id', game_controller.display_game);
-router.get('/', game_controller.display_games);
+router.get('/:id', gameController.displayGame);
+router.get('/', gameController.displayGames);
 
-router.post('/activate', game_controller.activate);
-router.post('/add-player', game_controller.add_player);
-router.post('/game-register', game_controller.game_register);
+router.post('/activate', gameController.activateGame);
+router.post('/add-player', gameController.addPlayer);
 
-router.patch('/:id/', game_controller.update_game_state);
+router.patch('/game-register', gameController.gameRegister);
+router.patch('/:id', gameController.updateGameStatus);
 
-router.delete('/:id', game_controller.delete_game);
+router.delete('/:id', gameController.deleteGame);
 
 
 module.exports = router;
