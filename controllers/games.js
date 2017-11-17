@@ -32,7 +32,7 @@ var display_games = function(req, res) {
 
 var activate = function(req, res) {
     let game = new Game({
-        min_bid: req.body.min_bid,
+        min_bid_value: req.body.min_bid_value,
         start_time: Date.now()
     });
 

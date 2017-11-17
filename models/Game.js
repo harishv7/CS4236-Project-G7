@@ -16,13 +16,16 @@ var GameSchema = new Schema({
         required: true,
         min: 0
     },
-    start_time: Number,  // if we change to epoch, is it still number? or is it Date? Is there a DateTime?
+    start_time: {
+        type: Date,
+        required: true,
+        default: Date.now
+    },
     state: {
         type: Number,
         required: true,
         default: 0
     },
-    // We don't need num_of_players, do we?
     players: {
         type: [Number],
         default: []

@@ -13,7 +13,7 @@ class Game {
     }
 
     gameRegister(playerId, commitGuess, commitSecret, bidValue, callback) {
-        // TODO: Subtracts $bid_value from user Pi. Adds $bid_value to Broker
+        // TODO: Subtracts $bid_value from player Pi. Adds $bid_value to Broker
 
         // Store Commit(s,r1), Commit(guess,r2), bid_value in some arrays
         if (this._players.indexOf(playerId) != -1) {

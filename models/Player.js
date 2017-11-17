@@ -5,8 +5,8 @@ autoIncrement.initialize(mongoose.connection);
 
 var Schema = mongoose.Schema;
 
-// TODO: Change User to Player? To make it consistent with other parts of the code
-var UserSchema = new Schema({
+// TODO: Change Player to Player? To make it consistent with other parts of the code
+var PlayerSchema = new Schema({
     id: {
         type: Number,
         unique: true,
@@ -25,8 +25,8 @@ var UserSchema = new Schema({
     }
 });
 
-UserSchema.plugin(autoIncrement.plugin, { model: 'User', field: 'id', startAt: 1 });
+PlayerSchema.plugin(autoIncrement.plugin, { model: 'Player', field: 'id', startAt: 1 });
 
-var User = mongoose.model('User', UserSchema);
+var Player = mongoose.model('Player', PlayerSchema);
 
-module.exports = User;
+module.exports = Player;
