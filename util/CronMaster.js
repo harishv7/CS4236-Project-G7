@@ -3,6 +3,7 @@ var async = require('async');
 
 var Game = require('../models/Game');
 var Transaction = require('../models/Transaction');
+var PlayerController = require('../controllers/players');
 var GameController = require('../controllers/games');
 var GameStates = require('./GameStates');
 
@@ -68,24 +69,46 @@ function activateNewGame(transaction) {
     });
 }
 
+// Temporary function to populate players collection
+function populatePlayersCollection() {
+    var i = 3;
+    while (i > 0) {
+        PlayerController.createPlayer(function(err, player) {
+            console.log(player);
+        });
+        i--;
+    }
+};
+//populatePlayersCollection();
+
 /**
  * Expected fields in transaction: game_id, player_id
  * @param {Object} transaction
  */
 function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
-    const playerId = parseInt(transaction.player_id);
+    var playerId = parseInt(transaction.player_id);
 
     GameController.getGame(gameId, function(err, game) {
         if (err) console.error(err);
 
         if (game.state == GameStates.ACTIVATE) {
-            GameController.addPlayerToGame(gameId, playerId, function(err, updatedGame) {
-                // TODO: might need to io.emit
-                if (err) {
-                    console.error(err);
-                } else {
-                    console.log(playerId + " has joined " + gameId);
+            // Check player's balance before adding them to the game
+            PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
+                if (err) console.error(err);
+                else {
+                    if (playerBalance < game.min_bid_value) {
+                        console.log("Player " + playerId + " has insufficient funds to join game " + game.id);
+                    } else {
+                        GameController.addPlayerToGame(gameId, playerId, function(err, updatedGame) {
+                            // TODO: might need to io.emit
+                            if (err) {
+                                console.error(err);
+                            } else {
+                                console.log("Player " + playerId + " has joined game " + gameId);
+                            }
+                        });
+                    }
                 }
             });
         } else {
@@ -106,9 +129,25 @@ function gameRegister(transaction) {
     const commitGuess = transaction.commit_guess;
     const bidValue = parseInt(transaction.bid_value);
 
-    GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
+    // Check if player's balance is greater than or equal to the bidValue
+    PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
         if (err) console.error(err);
-        else console.log("Player " + playerId + " has registered game successfully.");
+        else {
+            if (playerBalance < bidValue) console.log("Player " + playerId + " has insufficient funds to place this bid");
+            else {
+                GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
+                    if (err) console.error(err);
+                    else {
+                        const newBalance = playerBalance - bidValue;
+                        PlayerController.updatePlayerBalance(playerId, newBalance, function(err, player) {
+                            if (err) console.error(err);
+                            else console.log("Player " + playerId + "'s new balance is: " + newBalance);
+                        });
+                        console.log("Player " + playerId + " has registered game successfully.");
+                    }
+                });
+            }
+        }
     });
 }
 

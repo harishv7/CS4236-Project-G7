@@ -14,7 +14,7 @@ var PlayerSchema = new Schema({
     balance: {
         type: Number,
         required: true,
-        default: 1000
+        default: 100
     }
 });
 
