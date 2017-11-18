@@ -285,6 +285,7 @@ var cronJob = new CronJob(cronExpression, function() {
                             }
                         });
                     } else {
+                        // TODO: send start game transaction instead of updating the state
                         game.state = GameStates.GAME_START;
                         game.save(function(err, updatedGame) {
                             if (err) console.error(err);
@@ -299,6 +300,7 @@ var cronJob = new CronJob(cronExpression, function() {
             });
         },
         function(callback) {
+            // TODO: merge the second function to this function
             Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $ne: GameStates.GAME_KILLED } }, function(err, ongoingGames) {
                 if (err) console.error(err);
 
