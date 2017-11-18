@@ -68,7 +68,7 @@ function activateNewGame(transaction) {
     const minBidValue = parseInt(transaction.min_bid_value);
     const playerId = parseInt(transaction.player_id);
 
-    GameController.activateGame(minBidValue, clock, function(err, game) {
+    GameController.activateNewGame(minBidValue, clock, function(err, game) {
         if (err) console.error(err);
         else {
             console.log("Initialised new game: " + game.id + ", minBid: " + game.min_bid_value);

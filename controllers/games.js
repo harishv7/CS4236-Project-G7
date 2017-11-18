@@ -28,7 +28,7 @@ var displayGames = function(req, res) {
 };
 
 
-var activateGame = function(minBidValue, startTime, callback) {
+var activateNewGame = function(minBidValue, startTime, callback) {
     let game = new Game({
         min_bid_value: minBidValue,
         start_time: startTime
@@ -43,7 +43,6 @@ var activateGame = function(minBidValue, startTime, callback) {
 };
 
 var addPlayer = function(gameId, playerId, callback) {
-
     Game.findOneAndUpdate({id: gameId}, {$push: {players: playerId}}, {new: true}).then(function(game) {
         if (!game) {
             return callback('Game does not exist');
@@ -123,7 +122,7 @@ var deleteGame = function(req, res) {
 module.exports = {
     getGame,
     displayGames,
-    activateGame,
+    activateNewGame,
     addPlayer,
     gameRegister,
     updateGameState,

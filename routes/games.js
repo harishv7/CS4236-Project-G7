@@ -7,7 +7,7 @@ var gameController = require('./../controllers/games');
 router.get('/:id', gameController.getGame);
 router.get('/', gameController.displayGames);
 
-router.post('/activate', gameController.activateGame);
+router.post('/activate', gameController.activateNewGame);
 router.post('/add-player', gameController.addPlayer);
 
 router.patch('/:id/game-register', gameController.gameRegister);
