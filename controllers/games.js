@@ -2,17 +2,15 @@ var _ = require('lodash');
 var mongoose = require('mongoose');
 var Game = require('./../models/Game');
 
-var displayGame = function(req, res) {
-    var id = req.params.id;
-
-    Game.findOne({id}).then(function(game) {
+var getGame = function(gameId, callback) {
+    Game.findOne({id: gameId}).then(function(game) {
         if (!game) {
-            return res.status(404).send('Game not found');
+            return callback('Game not found');
         }
-        return res.send({game});
+        return callback(null, game);
     })
     .catch(function(err) {
-        return res.status(400).send(err);
+        return callback(err);
     });
 };
 
@@ -30,32 +28,31 @@ var displayGames = function(req, res) {
 };
 
 
-var activateGame = function(req, res) {
+var activateGame = function(minBidValue, startTime, callback) {
     let game = new Game({
-        min_bid_value: req.body.min_bid_value,
-        start_time: Date.now()
+        min_bid_value: minBidValue,
+        start_time: startTime
     });
 
     game.save().then(function(game) {
-        return res.send(game);
+        callback(null, game);
     })
     .catch(function(err) {
-        return res.status(400).send(err);
+        return callback(err);
     });
 };
 
-var addPlayer = function(req, res) {
-    var body = _.pick(req.body, ['game_id', 'player_id']);
+var addPlayer = function(gameId, playerId, callback) {
 
-    Game.findOneAndUpdate({id: body.game_id}, {$push: {players: body.player_id}}, {new: true}).then(function(game) {
+    Game.findOneAndUpdate({id: gameId}, {$push: {players: playerId}}, {new: true}).then(function(game) {
         if (!game) {
-            return res.status(404).send('Game does not exist');
+            return callback('Game does not exist');
         } else {
-            return res.send({game});
+            return callback(null, game);
         }
     })
     .catch(function(err) {
-        return res.status(400).send(err);
+        return callback(err);
     });
 };
 
@@ -124,7 +121,7 @@ var deleteGame = function(req, res) {
 
 
 module.exports = {
-    displayGame,
+    getGame,
     displayGames,
     activateGame,
     addPlayer,

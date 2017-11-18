@@ -4,6 +4,8 @@ var Transaction = require('../models/Transaction');
 var GameStates = require('./GameStates');
 var async = require('async');
 
+var GameController = require('../controllers/games');
+
 // TODO: execute every minute
 const clockDuration = 20;
 const cronExpression = '*/' + String(clockDuration) + ' * * * * *';
@@ -66,10 +68,7 @@ function activateNewGame(transaction) {
     const minBidValue = parseInt(transaction.min_bid_value);
     const playerId = parseInt(transaction.player_id);
 
-    Game.create({
-        min_bid_value: minBidValue,
-        start_time: clock
-    }, function(err, game) {
+    GameController.activateGame(minBidValue, clock, function(err, game) {
         if (err) console.error(err);
         else {
             console.log("Initialised new game: " + game.id + ", minBid: " + game.min_bid_value);
@@ -85,19 +84,18 @@ function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
 
-    Game.findOne({ id: gameId }, function(err, game) {
+    GameController.getGame(gameId, function(err, game) {
         if (err) console.error(err);
 
         if (game.state == GameStates.ACTIVATE) {
-            game.players.push(playerId);
-            game.save(function(err, updatedGame) {
+            GameController.addPlayer(gameId, playerId, function(err, updatedGame) {
                 // TODO: might need to io.emit
                 if (err) {
                     console.error(err);
                 } else {
                     console.log(playerId + " has joined " + gameId);
                 }
-            })
+            });
         } else {
             console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
                 GameStates[game.state]);
