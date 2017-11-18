@@ -20,6 +20,10 @@ p {
     background-color: #F2F2F2;
 }
 
+#footer {
+    background-color: #1D62F0 !important;
+}
+
 .custom-btn {
     display: inline-block;
     width: 200px;
