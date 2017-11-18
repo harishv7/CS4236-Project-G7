@@ -210,6 +210,21 @@ var canOpenCommitment = function(gameRegister, revealSecret) {
 
     return isSecretCommitValid && isGuessCommitValid;
 };
+var startGame = function(gameId, callback) {
+    Game.find({ id: gameId }, function(err, game) {
+        if (err) callback(err);
+
+        if (game.state == GameStates.PLAYERS_JOIN) {
+            game.state = GameStates.GAME_START;
+            game.save(function(err, updatedGame) {
+                if (err) callback(err);
+                else callback(null, "Game " + gameId + " started.")
+            });
+        } else {
+            callback("Tried to start game " + gameId + ". But, the game is in state" + GameStates[game.state]);
+        }
+    });
+};
 
 var killGame = function(gameId, callback) {
     Game.find({ id: gameId }, function(err, game) {
@@ -234,5 +249,6 @@ module.exports = {
     gameRegister,
     revealSecret,
     distribute,
+    startGame,
     killGame
 };

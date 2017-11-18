@@ -1,20 +1,12 @@
 var CronJob = require('cron').CronJob;
-<<<<<<< HEAD
-var Game = require('../models/Game');
-var GameStates = require('./GameStates');
-=======
->>>>>>> develop
 var async = require('async');
 
 var Game = require('../models/Game');
 var Transaction = require('../models/Transaction');
 var PlayerController = require('../controllers/players');
 var GameController = require('../controllers/games');
-<<<<<<< HEAD
 var TransactionController = require('../controllers/transactions');
-=======
 var GameStates = require('./GameStates');
->>>>>>> develop
 
 // TODO: execute every minute
 const clockDuration = 20;
@@ -86,15 +78,15 @@ function activateNewGame(transaction) {
 
 // Temporary function to populate players collection
 function populatePlayersCollection() {
-    var i = 3;
+    var i = 5;
     while(i > 0) {
         PlayerController.createPlayer(function(err, player) {
             console.log(player);
         });
         i--;
     }
-};
-//populatePlayersCollection();
+}
+// populatePlayersCollection();
 
 /**
  * Expected fields in transaction: game_id, player_id
@@ -128,19 +120,14 @@ function joinNewGame(transaction) {
             });
         } else {
             console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
-            game.state);
+            GameStates[game.state]);
         }
     });
 }
 
 /**
-<<<<<<< HEAD
  * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess
  * @param {Transaction} transaction
-=======
- * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess, bid_value
- * @param {Object} transaction
->>>>>>> develop
  */
 function gameRegister(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -189,6 +176,15 @@ function revealSecret(transaction) {
     });
 }
 
+function startGame(transaction) {
+    const gameId = transaction.game_id;
+
+    GameController.startGame(gameId, function(err, msg) {
+        if (err) console.error(err);
+        else console.log(msg);
+    });
+}
+
 /**
  * Expected fields in transaction: game_id
  * @param {Transaction} transaction
@@ -231,15 +227,15 @@ function executeTransaction(transaction) {
             console.log("JOIN GAME");
             joinNewGame(transaction);
             break;
+        case transactionTypes.STARTGAME:
+            console.log("START GAME");
+            startGame(transaction);
+            break;
         case transactionTypes.KILLGAME:
             console.log("KILL GAME");
             killGame(transaction);
             break;
         case transactionTypes.GAMEREGISTER:
-<<<<<<< HEAD
-            // TODO: Not yet supported using DB
-=======
->>>>>>> develop
             console.log("GAME REGISTER");
             gameRegister(transaction);
             break;
@@ -300,51 +296,34 @@ var cronJob = new CronJob(cronExpression, function() {
             });
         },
         function(callback) {
-            // check on all pending game requests to see if enough players have joined
-            Game.find({ state: { $eq: GameStates.PLAYERS_JOIN } }, function(err, gameRequests) {
+            Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $ne: GameStates.GAME_KILLED } }, function(err, games) {
                 if (err) console.error(err);
 
-                gameRequests.forEach(function(game) {
-                    console.log(game);
+                games.forEach(function(game) {
+                    if (game.state == GameStates.ACTIVATE) {
+                        console.log("Checking if this game has enough players to play:")
+                        console.log(game);
+                        console.log("Number of players: " + game.players.length);
 
-                    // if the previous state was to join game, we check if sufficient players have joined
-                    console.log("Checking Join Game");
+                        var transactionId;
+                        if (game.players.length < 3) {
+                            console.log("Game has fewer than 3 players. Killing game.");
+                            transactionId = transactionTypes.KILLGAME;
+                        } else {
+                            transactionId = transactionTypes.STARTGAME;
+                        }
 
-                    console.log("Checking on game:\n" + game);
-                    console.log("Number of players: " + game.players.length);
-
-                    if (game.players.length < 3) {
-                        console.log("Game has fewer than 3 players. Killing game.");
-                        // initiate transaction to kill game
+                        // START or KILL GAME
                         addNewTransaction({
-                            "transaction_id": transactionTypes.KILLGAME,
+                            "transaction_id": transactionId,
                             "game_id": game.id
                         }, function(err) {
                             if (err) {
                                 console.log("Some error. :/");
                             }
                         });
-                    } else {
-                        // TODO: send start game transaction instead of updating the state
-                        game.state = GameStates.GAME_START;
-                        game.save(function(err, updatedGame) {
-                            if (err) console.error(err);
-                            else {
-                                console.log("Game starting.");
-                            }
-                        });
                     }
-                });
 
-                callback(null);
-            });
-        },
-        function(callback) {
-            // TODO: merge the second function to this function
-            Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $ne: GameStates.GAME_KILLED } }, function(err, ongoingGames) {
-                if (err) console.error(err);
-
-                ongoingGames.forEach(function(game) {
                     game.state += 1;
                     game.save(function(err, updatedGame) {
                         if (err) console.error(err);
