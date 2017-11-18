@@ -46,9 +46,9 @@ var GameSchema = new Schema({
         type: [{
             player_id: Number,
             secret: Number,
-            r_one: String,
+            r_one: Number,
             guess: Number,
-            r_two: String
+            r_two: Number
         }],
         default: []
     }

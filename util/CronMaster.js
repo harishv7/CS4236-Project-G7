@@ -86,7 +86,7 @@ function joinNewGame(transaction) {
 
     GameController.getGame(gameId, function(err, game) {
         if (err) console.error(err);
-        
+
         if (game.state == GameStates.ACTIVATE) {
             GameController.addPlayer(gameId, playerId, function(err, updatedGame) {
                 // TODO: might need to io.emit
@@ -104,7 +104,7 @@ function joinNewGame(transaction) {
 }
 
 /**
- * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess
+ * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess, bid_value
  * @param {Object} transaction
  */
 function gameRegister(transaction) {
@@ -112,7 +112,7 @@ function gameRegister(transaction) {
     const playerId = parseInt(transaction.player_id);
     const commitSecret = transaction.commit_secret;
     const commitGuess = transaction.commit_guess;
-    const bidValue = transaction.bid_value;
+    const bidValue = parseInt(transaction.bid_value);
 
     GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
       if (err) console.error(err);
@@ -127,18 +127,14 @@ function gameRegister(transaction) {
 function revealSecret(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
-    const secret = transaction.secret;
-    const guess = transaction.guess;
-    const rOne = transaction.r_one;
-    const rTwo = transaction.r_two;
+    const secret = parseInt(transaction.secret);
+    const guess = parseInt(transaction.guess);
+    const rOne = parseInt(transaction.r_one);
+    const rTwo = parseInt(transaction.r_two);
 
-    var game = ongoingGames[gameId];
-    game.revealSecret(playerId, secret, guess, rOne, rTwo, function(err) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("Player " + playerId + " has revealed secret.");
-        }
+    GameController.revealSecret(gameId, playerId, secret, guess, rOne, rTwo, function(err) {
+      if (err) console.error(err);
+      else console.log("Player " + playerId + " has revealed secret.");
     });
 }
 
@@ -194,16 +190,12 @@ function executeTransaction(transaction) {
             killGame(transaction);
             break;
         case transactionTypes.GAMEREGISTER:
-            // TODO: Not yet supported using DB
-            // console.log("GAME REGISTER");
-            // gameRegister(transaction);
             console.log("GAME REGISTER");
             gameRegister(transaction);
             break;
         case transactionTypes.REVEALSECRET:
-            // TODO: Not yet supported using DB
-            // console.log("REVEAL SECRET");
-            // revealSecret(transaction);
+            console.log("REVEAL SECRET");
+            revealSecret(transaction);
             break;
         case transactionTypes.DISTRIBUTE:
             // TODO: Not yet supported using DB

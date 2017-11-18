@@ -13,92 +13,6 @@
 </head>
 
 <body>
-<<<<<<< HEAD
-    <script>
-        $(document).ready(function() {
-            $(function() {
-                let b = baffle('.baffleme').start();
-                b.reveal(2000);
-
-                particlesJS.load('particles', '/javascripts/particles.json', function() {
-                  console.log('callback - particles.js config loaded');
-                });
-
-                $("#accordion").accordion({
-                    collapsible: true,
-                    active: false,
-                    heightStyle: "content"
-                });
-
-                $("#activateForm").submit(function(event) {
-                    event.preventDefault();
-                    var data = $("#activateForm").serializeArray();
-                    const playerId = data[0]["value"];
-                    const minBidAmt = data[1]["value"];
-                    console.log(playerId);
-                    console.log(minBidAmt);
-                    $.post("http://localhost:3000/send-transaction", {
-                        "transaction_id": 0,
-                        "player_id": playerId,
-                        "min_bid_value": minBidAmt
-                    });
-                });
-
-                $("#joinGameForm").submit(function(event) {
-                    event.preventDefault();
-                    var data = $("#joinGameForm").serializeArray();
-                    const playerId = data[0]["value"];
-                    const gameId = data[1]["value"];
-                    $.post("http://localhost:3000/send-transaction", {
-                        "transaction_id": 1,
-                        "player_id": playerId,
-                        "game_id": gameId
-                    });
-                });
-
-                $("#gameRegisterForm").submit(function(event) {
-                    event.preventDefault();
-                    var data = $("#gameRegisterForm").serializeArray();
-                    const playerId = data[0]["value"];
-                    const gameId = data[1]["value"];
-                    const commitSecret = data[2]["value"];
-                    const commitGuess = data[3]["value"];
-                    const bidValue = data[4]["value"];
-
-                    $.post("http://localhost:3000/send-transaction", {
-                        "transaction_id": 4,
-                        "player_id": playerId,
-                        "game_id": gameId,
-                        "commit_secret": commitSecret,
-                        "commit_guess": commitGuess,
-                        "bid_value": bidValue
-                    });
-                });
-
-                $("#revealSecretForm").submit(function(event) {
-                    event.preventDefault();
-                    var data = $("#revealSecretForm").serializeArray();
-                    const playerId = data[0]["value"];
-                    const gameId = data[1]["value"];
-                    const secret = data[2]["value"];
-                    const guess = data[3]["value"];
-                    const rOne = data[4]["value"];
-                    const rTwo = data[5]["value"];
-
-                    console.log("yis");
-
-                    $.post("http://localhost:3000/send-transaction", {
-                        "transaction_id": 3,
-                        "player_id": playerId,
-                        "game_id": gameId,
-                        "secret": secret,
-                        "guess": guess,
-                        "r_one": rOne,
-                        "r_two": rTwo
-                    });
-                });
-            });
-=======
   <script>
   $(document).ready(function() {
     $(function() {
@@ -132,7 +46,6 @@
             buttons: false,
             content: text,
           });
->>>>>>> 2584abc77b96b2829efb75e9fdbd22f43622d2c1
         });
       });
 
@@ -158,7 +71,7 @@
         const bidValue = data[4]["value"];
 
         $.post("http://localhost:3000/send-transaction", {
-          "transaction_id": 2,
+          "transaction_id": 4,
           "player_id": playerId,
           "game_id": gameId,
           "commit_secret": commitSecret,
@@ -180,7 +93,7 @@
         console.log("yis");
 
         $.post("http://localhost:3000/send-transaction", {
-          "transaction_id": 3,
+          "transaction_id": 5,
           "player_id": playerId,
           "game_id": gameId,
           "secret": secret,

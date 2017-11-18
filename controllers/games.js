@@ -76,6 +76,27 @@ var gameRegister = function(gameId, playerId, commitSecret, commitGuess, bidValu
     });
 }
 
+var revealSecret = function(gameId, playerId, secret, guess, rOne, rTwo, callback) {
+  var temp = {
+    player_id: playerId,
+    secret: secret,
+    guess: guess,
+    r_one: rOne,
+    r_two: rTwo
+  }
+
+  Game.findOneAndUpdate({id: gameId}, {$push: {reveal_secrets: temp}}, {new: true}).then(function(game) {
+      if (!game) {
+          return callback('Game does not exist');
+      } else {
+          return callback(null, game);
+      }
+  })
+  .catch(function(err) {
+      return callback(err);
+  });
+}
+
 var updateGameState = function(req, res) {
     var id = req.params.id;
 
@@ -119,6 +140,7 @@ module.exports = {
     activateNewGame,
     addPlayer,
     gameRegister,
+    revealSecret,
     updateGameState,
     deleteGame
 }
