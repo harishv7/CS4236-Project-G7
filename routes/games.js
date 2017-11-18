@@ -4,7 +4,7 @@ var router = express.Router();
 var gameController = require('./../controllers/games');
 
 
-router.get('/:id', gameController.displayGame);
+router.get('/:id', gameController.getGame);
 router.get('/', gameController.displayGames);
 
 router.post('/activate', gameController.activateGame);
