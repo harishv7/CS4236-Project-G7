@@ -1,10 +1,20 @@
 var CronJob = require('cron').CronJob;
+<<<<<<< HEAD
 var Game = require('../models/Game');
 var GameStates = require('./GameStates');
+=======
+>>>>>>> develop
 var async = require('async');
 
+var Game = require('../models/Game');
+var Transaction = require('../models/Transaction');
+var PlayerController = require('../controllers/players');
 var GameController = require('../controllers/games');
+<<<<<<< HEAD
 var TransactionController = require('../controllers/transactions');
+=======
+var GameStates = require('./GameStates');
+>>>>>>> develop
 
 // TODO: execute every minute
 const clockDuration = 20;
@@ -74,49 +84,89 @@ function activateNewGame(transaction) {
     });
 }
 
+// Temporary function to populate players collection
+function populatePlayersCollection() {
+    var i = 3;
+    while(i > 0) {
+        PlayerController.createPlayer(function(err, player) {
+            console.log(player);
+        });
+        i--;
+    }
+};
+//populatePlayersCollection();
+
 /**
  * Expected fields in transaction: game_id, player_id
  * @param {Transaction} transaction
  */
 function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
-    const playerId = parseInt(transaction.player_id);
+    var playerId = parseInt(transaction.player_id);
 
     GameController.getGame(gameId, function(err, game) {
         if (err) console.error(err);
 
         if (game.state == GameStates.ACTIVATE) {
-            GameController.addPlayer(gameId, playerId, function(err, updatedGame) {
-                // TODO: might need to io.emit
-                if (err) {
-                    console.error(err);
-                } else {
-                    console.log(playerId + " has joined " + gameId);
+            // Check player's balance before adding them to the game
+            PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
+                if (err) console.error(err);
+                else {
+                    if (playerBalance < game.min_bid_value) {
+                        console.log("Player " + playerId + " has insufficient funds to join game " + game.id);
+                    } else {
+                        GameController.addPlayerToGame(gameId, playerId, function(err, updatedGame) {
+                            // TODO: might need to io.emit
+                            if (err) {
+                                console.error(err);
+                            } else {
+                                console.log("Player " + playerId + " has joined game " + gameId);
+                            }
+                        });
+                    }
                 }
             });
         } else {
             console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
-                GameStates[game.state]);
+            game.state);
         }
     });
 }
 
 /**
+<<<<<<< HEAD
  * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess
  * @param {Transaction} transaction
+=======
+ * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess, bid_value
+ * @param {Object} transaction
+>>>>>>> develop
  */
 function gameRegister(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
-    const commitGuess = transaction.commit_guess;
     const commitSecret = transaction.commit_secret;
-    const bidValue = transaction.bid_value;
+    const commitGuess = transaction.commit_guess;
+    const bidValue = parseInt(transaction.bid_value);
 
-    game.gameRegister(playerId, commitGuess, commitSecret, bidValue, function(err) {
-        if (err) {
-            console.error(err);
-        } else {
-            console.log("Player " + playerId + " has registered game successfully.");
+    // Check if player's balance is greater than or equal to the bidValue
+    PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
+        if (err) console.error(err);
+        else {
+            if (playerBalance < bidValue) console.log("Player " + playerId + " has insufficient funds to place this bid");
+            else {
+                GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
+                  if (err) console.error(err);
+                  else {
+                      const newBalance = playerBalance - bidValue;
+                      PlayerController.updatePlayerBalance(playerId, newBalance, function(err, player) {
+                          if (err) console.error(err);
+                          else console.log("Player " + playerId + "'s new balance is: " + newBalance);
+                      });
+                      console.log("Player " + playerId + " has registered game successfully.");
+                  }
+                });
+            }
         }
     });
 }
@@ -128,18 +178,14 @@ function gameRegister(transaction) {
 function revealSecret(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
-    const secret = transaction.secret;
-    const guess = transaction.guess;
-    const rOne = transaction.r_one;
-    const rTwo = transaction.r_two;
+    const secret = parseInt(transaction.secret);
+    const guess = parseInt(transaction.guess);
+    const rOne = parseInt(transaction.r_one);
+    const rTwo = parseInt(transaction.r_two);
 
-    var game = ongoingGames[gameId];
-    game.revealSecret(playerId, secret, guess, rOne, rTwo, function(err) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("Player " + playerId + " has revealed secret.");
-        }
+    GameController.revealSecret(gameId, playerId, secret, guess, rOne, rTwo, function(err) {
+      if (err) console.error(err);
+      else console.log("Player " + playerId + " has revealed secret.");
     });
 }
 
@@ -149,18 +195,10 @@ function revealSecret(transaction) {
  */
 function killGame(transaction) {
     const gameId = transaction.game_id;
-    Game.find({ id: gameId }, function(err, game) {
-        if (err) console.error(err);
 
-        if (game.state == GameStates.PLAYERS_JOIN) {
-            game.state = GameStates.GAME_KILLED;
-            game.save(function(err, updatedGame) {
-                if (err) console.error(err);
-                else console.log("Game " + gameId + " was killed.")
-            });
-        } else {
-            console.log("Tried to kill game " + gameId + ". But, the game is in state" + GameStates[game.state]);
-        }
+    GameController.killGame(gameId, function(err, msg) {
+        if (err) console.error(err);
+        else console.log(msg);
     });
 }
 
@@ -198,14 +236,16 @@ function executeTransaction(transaction) {
             killGame(transaction);
             break;
         case transactionTypes.GAMEREGISTER:
+<<<<<<< HEAD
             // TODO: Not yet supported using DB
+=======
+>>>>>>> develop
             console.log("GAME REGISTER");
             gameRegister(transaction);
             break;
         case transactionTypes.REVEALSECRET:
-            // TODO: Not yet supported using DB
-            // console.log("REVEAL SECRET");
-            // revealSecret(transaction);
+            console.log("REVEAL SECRET");
+            revealSecret(transaction);
             break;
         case transactionTypes.DISTRIBUTE:
             // TODO: Not yet supported using DB

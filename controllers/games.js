@@ -2,34 +2,20 @@ var _ = require('lodash');
 var crypto = require('crypto');
 var mongoose = require('mongoose');
 var Game = require('./../models/Game');
+var GameStates = require('./../util/GameStates');
 
 var PlayerController = require('../controllers/players');
 const BROKER_PERCENTAGE = 0.05;
 
 var getGame = function(gameId, callback) {
     Game.findOne({id: gameId}).then(function(game) {
-        if (!game) {
-            return callback('Game not found');
-        }
-        return callback(null, game);
+        if (!game) return callback("Game not found");
+        else return callback(null, game);
     })
     .catch(function(err) {
         return callback(err);
     });
 };
-
-var displayGames = function(req, res) {
-    Game.find().then(function(games) {
-        if (games.length == 0) {
-            return res.status(404).send('No games found');
-        }
-        return res.send({games});
-    })
-    .catch(function(err) {
-        return res.status(400).send(err);
-    });
-};
-
 
 var activateNewGame = function(minBidValue, startTime, callback) {
     let game = new Game({
@@ -38,50 +24,59 @@ var activateNewGame = function(minBidValue, startTime, callback) {
     });
 
     game.save().then(function(game) {
-        callback(null, game);
+        return callback(null, game);
     })
     .catch(function(err) {
         return callback(err);
     });
 };
 
-var addPlayer = function(gameId, playerId, callback) {
+var addPlayerToGame = function(gameId, playerId, callback) {
     Game.findOneAndUpdate({id: gameId}, {$push: {players: playerId}}, {new: true}).then(function(game) {
-        if (!game) {
-            return callback('Game does not exist');
-        } else {
-            return callback(null, game);
-        }
+        if (!game) return callback("Game does not exist");
+        else return callback(null, game);
     })
     .catch(function(err) {
         return callback(err);
     });
 };
 
-var gameRegister = function(req, res) {
-    var body = _.pick(req.body, ['game_id', 'player_id', 'secret', 'guess', 'r_one', 'r_two']);
-    var player_id = body.player_id;
-
-    var temp = {};
-    temp = {
-        player_id: body.player_id,
-        secret: body.secret,
-        guess: body.guess,
-        r_one: body.r_one,
-        r_two: body.r_two
+var gameRegister = function(gameId, playerId, commitSecret, commitGuess, bidValue, callback) {
+    var temp = {
+        player_id: playerId,
+        commit_secret: commitSecret,
+        commit_guess: commitGuess,
+        bid_value: bidValue
     };
 
-    Game.findOneAndUpdate({id: body.game_id}, {$push: {game_register: temp}}, {new: true}).then(function(game) {
-        if (!game) {
-            return res.status(404).send('Game does not exist');
-        } else {
-            return res.send({game});
-        }
+    //TODO: Handle condition where bid_value is less than the game's min_bid_value
+
+    Game.findOneAndUpdate({id: gameId}, {$push: {game_registers: temp}}, {new: true}).then(function(game) {
+        if (!game) return callback("Game does not exist");
+        else return callback(null, game);
     })
     .catch(function(err) {
-        return res.status(400).send(err);
+        return callback(err);
     });
-}
+};
+
+var revealSecret = function(gameId, playerId, secret, guess, rOne, rTwo, callback) {
+    var temp = {
+        player_id: playerId,
+        secret: secret,
+        guess: guess,
+        r_one: rOne,
+        r_two: rTwo
+    };
+
+    Game.findOneAndUpdate({id: gameId}, {$push: {reveal_secrets: temp}}, {new: true}).then(function(game) {
+        if (!game) return callback("Game does not exist");
+        else return callback(null, game);
+    })
+    .catch(function(err) {
+        return callback(err);
+    });
+};
 
 var distribute = function(gameId, callback) {
     Game.findOne({id: gameId}).then(function(game) {
@@ -203,6 +198,7 @@ var distribute = function(gameId, callback) {
     });
 };
 
+
 var canOpenCommitment = function(gameRegister, revealSecret) {
     var isSecretCommitValid, isGuessCommitValid;
     var hash1 = crypto.createHash('sha256'), hash2 = crypto.createHash('sha256');
@@ -215,12 +211,28 @@ var canOpenCommitment = function(gameRegister, revealSecret) {
     return isSecretCommitValid && isGuessCommitValid;
 };
 
+var killGame = function(gameId, callback) {
+    Game.find({ id: gameId }, function(err, game) {
+        if (err) callback(err);
+
+        if (game.state == GameStates.PLAYERS_JOIN) {
+            game.state = GameStates.GAME_KILLED;
+            game.save(function(err, updatedGame) {
+                if (err) callback(err);
+                else callback(null, "Game " + gameId + " was killed.")
+            });
+        } else {
+            callback("Tried to kill game " + gameId + ". But, the game is in state" + GameStates[game.state]);
+        }
+    });
+};
+
 module.exports = {
     getGame,
-    displayGames,
     activateNewGame,
-    addPlayer,
+    addPlayerToGame,
     gameRegister,
-    updateGameState,
-    deleteGame
-}
+    revealSecret,
+    distribute,
+    killGame
+};

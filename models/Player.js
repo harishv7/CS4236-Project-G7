@@ -11,16 +11,10 @@ var PlayerSchema = new Schema({
         unique: true,
         dropDups: true
     },
-    name: {
-        type: String,
-        required: true,
-        minlength: 1,
-        trim: true
-    },
     balance: {
         type: Number,
         required: true,
-        default: 1000
+        default: 100
     }
 });
 

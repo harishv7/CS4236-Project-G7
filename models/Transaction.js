@@ -27,8 +27,8 @@ var TransactionSchema = new Schema({
         type: Number,
         min: 1
     },
-    secret_commit: String,
-    guess_commit: String,
+    commit_secret: String,
+    commit_guess: String,
     bid_value: {
         type: Number,
         min: 1
