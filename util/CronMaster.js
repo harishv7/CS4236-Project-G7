@@ -86,7 +86,7 @@ function joinNewGame(transaction) {
 
     GameController.getGame(gameId, function(err, game) {
         if (err) console.error(err);
-
+        
         if (game.state == GameStates.ACTIVATE) {
             GameController.addPlayer(gameId, playerId, function(err, updatedGame) {
                 // TODO: might need to io.emit
@@ -110,16 +110,13 @@ function joinNewGame(transaction) {
 function gameRegister(transaction) {
     const gameId = parseInt(transaction.game_id);
     const playerId = parseInt(transaction.player_id);
-    const commitGuess = transaction.commit_guess;
     const commitSecret = transaction.commit_secret;
+    const commitGuess = transaction.commit_guess;
     const bidValue = transaction.bid_value;
 
-    game.gameRegister(playerId, commitGuess, commitSecret, bidValue, function(err) {
-        if (err) {
-            console.error(err);
-        } else {
-            console.log("Player " + playerId + " has registered game successfully.");
-        }
+    GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
+      if (err) console.error(err);
+      else console.log("Player " + playerId + " has registered game successfully.");
     });
 }
 
@@ -200,6 +197,8 @@ function executeTransaction(transaction) {
             // TODO: Not yet supported using DB
             // console.log("GAME REGISTER");
             // gameRegister(transaction);
+            console.log("GAME REGISTER");
+            gameRegister(transaction);
             break;
         case transactionTypes.REVEALSECRET:
             // TODO: Not yet supported using DB

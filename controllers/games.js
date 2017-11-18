@@ -54,28 +54,25 @@ var addPlayer = function(gameId, playerId, callback) {
     });
 };
 
-var gameRegister = function(req, res) {
-    var body = _.pick(req.body, ['game_id', 'player_id', 'secret', 'guess', 'r_one', 'r_two']);
-    var player_id = body.player_id;
-
-    var temp = {};
-    temp = {
-        player_id: body.player_id,
-        secret: body.secret,
-        guess: body.guess,
-        r_one: body.r_one,
-        r_two: body.r_two
+var gameRegister = function(gameId, playerId, commitSecret, commitGuess, bidValue, callback) {
+    var temp = {
+        player_id: playerId,
+        commit_secret: commitSecret,
+        commit_guess: commitGuess,
+        bid_value: bidValue
     };
 
-    Game.findOneAndUpdate({id: body.game_id}, {$push: {game_register: temp}}, {new: true}).then(function(game) {
+    //TODO: Handle condition where bid_value is less than the game's min_bid_value
+
+    Game.findOneAndUpdate({id: gameId}, {$push: {game_registers: temp}}, {new: true}).then(function(game) {
         if (!game) {
-            return res.status(404).send('Game does not exist');
+            return callback('Game does not exist');
         } else {
-            return res.send({game});
+            return callback(null, game);
         }
     })
     .catch(function(err) {
-        return res.status(400).send(err);
+        return callback(err);
     });
 }
 
@@ -85,8 +82,8 @@ var updateGameState = function(req, res) {
     var body = _.pick(req.body, ['state']);
 
     // Set game to completed if Distribute is done
-    if (req.body.state && req.body.state == 5) {
-        body.state = 6;
+    if (req.body.state && req.body.state == 6) {
+        body.state = 7;
         body.completed = true;
     }
 

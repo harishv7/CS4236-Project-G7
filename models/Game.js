@@ -33,8 +33,8 @@ var GameSchema = new Schema({
     game_registers: {
         type: [{
             player_id: Number,
-            secret_commit: String,
-            guess_commit: String,
+            commit_secret: String,
+            commit_guess: String,
             bid_value: {
                 type: Number,
                 min: 1
