@@ -90,7 +90,7 @@
         <div class="container">
             <div class="row text-inverse">
                 <div class="col-md-6">
-                    <h1>⏰ - <span id="clock"></span></h1>
+                    <h1>⏰ <span id="clock"></span></h1>
                 </div>
             </div>
         </div>
@@ -98,6 +98,7 @@
     <div class="section>" id="logs">
         <div class="container">
             <div class="row">
+                {{transactions}} {{games}}
                 <div class="col-md-6">
                     <h2>Current Queue</h2>
                     <div id="games">
@@ -119,19 +120,22 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {{#each games}}
+                                        {{#each currentQueue}}
                                         <tr>
                                             <td>
-                                                {{this.transaction_id}}
+                                                {{this.transactionType}}
                                             </td>
                                             <td>
-                                                {{this.player_id}}
+                                                {{this.playerId}}
                                             </td>
                                             <td>
-                                                {{this.params}}
+                                                {{#each this.parameters}} {{this}} <br> {{/each}}
                                             </td>
                                         </tr>
                                         {{/each}}
+                                        <span id="incomingTransactions">
+                                            
+                                        </span>
                                     </tbody>
                                 </table>
                             </div>
@@ -157,22 +161,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {{#each transactions}}
+                                    {{#each completed}}
                                     <tr>
                                         <td>
-                                            {{this.transaction_id}}
+                                            {{this.transactionType}}
                                         </td>
                                         <td>
-                                            {{this.player_id}}
+                                            {{this.playerId}}
                                         </td>
                                         <td>
-                                            {{this.params}}
+                                            {{#each this.parameters}} {{this}} <br> {{/each}}
                                         </td>
                                     </tr>
                                     {{/each}}
-                                    <div id="incomingTransactions">
-                                        <!-- Display new incoming transactiosn -->
-                                    </div>
                                 </tbody>
                             </table>
                         </div>
