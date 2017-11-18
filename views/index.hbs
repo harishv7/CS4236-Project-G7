@@ -15,6 +15,26 @@
 <body>
     <script>
         $(document).ready(function() {
+            var clockDuration = 20;
+            var genesis = new Date(1510849205000);
+            var currentTime = new Date();
+            var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
+            var clock = Math.ceil(diffInSeconds / clockDuration);
+            document.getElementById("clock").innerHTML = parseInt(clock);
+            console.log(clock);
+
+            function reloadClock() {
+                var clockDuration = 20;
+                var genesis = new Date(1510849205000);
+                var currentTime = new Date();
+                var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
+                var clock = Math.ceil(diffInSeconds / clockDuration);
+                document.getElementById("clock").innerHTML = parseInt(clock);
+                console.log(clock);
+            }
+
+            setTimeout(reloadClock, 20000);
+
             $(function() {
                 let b = baffle('.baffleme').start();
                 b.reveal(2000);
@@ -45,7 +65,8 @@
 
             socket.on('clock', (time) => {
                 console.log("Received clock: " + parseInt(time));
-                document.getElementById("clock").innerHTML = parseInt(time);
+
+                location.reload(true);
             });
 
             /* Put in Queue */
@@ -53,7 +74,7 @@
                 console.log("New transaction received.");
                 console.log(transaction);
 
-                var table = document.getElementById("currentQueue");
+                var table = document.getElementById("currentQueueTable");
                 var tr = document.createElement("tr");
                 var td1 = document.createElement("td");
                 var td2 = document.createElement("td");
@@ -117,14 +138,13 @@
     <div class="section>" id="logs">
         <div class="container">
             <div class="row">
-                {{transactions}} {{games}}
                 <div class="col-md-6">
                     <h2>Current Queue</h2>
-                    <div id="games">
+                    <div id="currentQueue">
                         <div class="card">
                             <div class="card-block">
                                 <!-- TODO: completed and incomplete games should be rendered differently -->
-                                <table class="table" id="currentQueue">
+                                <table class="table" id="currentQueueTable">
                                     <thead>
                                         <tr>
                                             <th>
@@ -160,7 +180,7 @@
                 </div>
                 <div class="col-md-6">
                     <h2>Log</h2>
-                    <div id="transactions">
+                    <div id="log">
                         <div class="card">
                             <table class="table">
                                 <thead>
@@ -192,6 +212,54 @@
                                     {{/each}}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <br>
+    </div>
+    <div class="section>">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Game Status</h2>
+                    <div id="games">
+                        <div class="card">
+                            <div class="card-block">
+                                <!-- TODO: completed and incomplete games should be rendered differently -->
+                                <table class="table" id="gamesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Game ID
+                                            </th>
+                                            <th>
+                                                Game State
+                                            </th>
+                                            <th>
+                                                Parameters
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="incomingTransactions">
+                                        {{#each games}}
+                                        <tr>
+                                            <td>
+                                                {{this.gameId}}
+                                            </td>
+                                            <td>
+                                                {{this.gameState}}
+                                            </td>
+                                            <td>
+                                                {{#each this.parameters}} {{this}} <br> {{/each}}
+                                            </td>
+                                        </tr>
+                                        {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

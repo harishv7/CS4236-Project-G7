@@ -7,6 +7,17 @@ var async = require('async');
 
 var cronMaster = require('../util/CronMaster');
 
+var gameStates = {
+    0: "Activate",
+    1: "Players Join",
+    2: "Game Killed",
+    3: "Game Start",
+    4: "Game Register",
+    5: "Reveal Secret",
+    6: "Distribute",
+    7: "Complete"
+};
+
 function populateTransactionInfo(transaction, callback) {
     const completed = transaction.completed;
     var transactionInfo = {};
@@ -61,6 +72,7 @@ router.get('/', function(req, res, next) {
             // transactions
             var currentQueue = [];
             var archive = [];
+            var allGames = [];
             async.each(transactions, function(transaction, callback) {
                 populateTransactionInfo(transaction, function(err, completed, transactionInfo) {
                     if (err) {
@@ -78,8 +90,24 @@ router.get('/', function(req, res, next) {
                 if (err) {
                     console.error("Error when looping through transactions.");
                 } else {
-                    console.log('Transactions delivering to home.');
-                    res.render('index', { title: 'The CupShufflers', currentQueue: currentQueue, completed: archive });
+                    async.each(games, function(game, callback) {
+                        gameInfo = {};
+                        gameInfo["gameId"] = game.id;
+                        gameInfo["gameState"] = gameStates[parseInt(game.state)];
+                        allGames.push(gameInfo);
+
+                        if (parseInt(game.state) === 7) {
+                            gameInfo["parameters"] = {
+                                "winners": null,
+                                "winningCupLocation": null
+                            };
+                        }
+
+                        callback();
+                    }, function(err) {
+                        console.log('Transactions delivering to home.');
+                        res.render('index', { title: 'The CupShufflers', currentQueue: currentQueue, completed: archive, games: allGames });
+                    });
                 }
             });
         });
