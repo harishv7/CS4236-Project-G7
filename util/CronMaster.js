@@ -3,6 +3,7 @@ var async = require('async');
 
 var Game = require('../models/Game');
 var Transaction = require('../models/Transaction');
+var PlayerController = require('../controllers/players');
 var GameController = require('../controllers/games');
 var GameStates = require('./GameStates');
 
@@ -82,18 +83,38 @@ function activateNewGame(transaction) {
  */
 function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
-    const playerId = parseInt(transaction.player_id);
+    var playerId = parseInt(transaction.player_id);
+
+    // Check if player exists, if not, create a new player
+    PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
+        if (err == "Player not found") {
+            PlayerController.createPlayer(function (err, player) {
+                if (err) console.error(err);
+                else playerId = player.id;
+            });
+        }
+    });
 
     GameController.getGame(gameId, function(err, game) {
         if (err) console.error(err);
 
         if (game.state == GameStates.ACTIVATE) {
-            GameController.addPlayerToGame(gameId, playerId, function(err, updatedGame) {
-                // TODO: might need to io.emit
-                if (err) {
-                    console.error(err);
-                } else {
-                    console.log(playerId + " has joined " + gameId);
+            // Check player's balance before adding him to the game
+            PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
+                if (err) console.error(err);
+                else {
+                    if (playerBalance < game.min_bid_value) {
+                        console.log("Player " + playerId + " has insufficient funds to join game " + game.id);
+                    } else {
+                        GameController.addPlayerToGame(gameId, playerId, function(err, updatedGame) {
+                            // TODO: might need to io.emit
+                            if (err) {
+                                console.error(err);
+                            } else {
+                                console.log("Player" + playerId + " has joined game " + gameId);
+                            }
+                        });
+                    }
                 }
             });
         } else {
