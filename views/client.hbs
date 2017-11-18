@@ -8,6 +8,7 @@
     <link href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css">
     <link rel='stylesheet' href='/stylesheets/client.css' />
     <script type="text/javascript" src="/javascripts/baffle.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script type="text/javascript" src="/javascripts/particles.min.js"></script>
     <title>The CupShufflers</title>
 </head>
@@ -40,6 +41,17 @@
                         "transaction_id": 0,
                         "player_id": playerId,
                         "min_bid_value": minBidAmt
+                    }, function() {
+                      // onSuccess callback
+                      var text = document.createElement("span");
+                      text.innerHTML= `playerId has been set to ${playerId}<br>minimum bid value has been set to ${minBidAmt}`;
+                      swal({
+                        title: "Success!",
+                        icon: "success",
+                        buttons: false,
+                        timer: 2500,
+                        content: text,
+                      });
                     });
                 });
 
