@@ -77,6 +77,18 @@ function activateNewGame(transaction) {
     });
 }
 
+// Temporary function to populate players collection
+function populatePlayersCollection() {
+    var i = 3;
+    while(i > 0) {
+        PlayerController.createPlayer(function(err, player) {
+            console.log(player);
+        });
+        i--;
+    }
+};
+//populatePlayersCollection();
+
 /**
  * Expected fields in transaction: game_id, player_id
  * @param {Object} transaction
@@ -85,21 +97,11 @@ function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
     var playerId = parseInt(transaction.player_id);
 
-    // Check if player exists, if not, create a new player
-    PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
-        if (err == "Player not found") {
-            PlayerController.createPlayer(function (err, player) {
-                if (err) console.error(err);
-                else playerId = player.id;
-            });
-        }
-    });
-
     GameController.getGame(gameId, function(err, game) {
         if (err) console.error(err);
 
         if (game.state == GameStates.ACTIVATE) {
-            // Check player's balance before adding him to the game
+            // Check player's balance before adding them to the game
             PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
                 if (err) console.error(err);
                 else {
@@ -111,7 +113,7 @@ function joinNewGame(transaction) {
                             if (err) {
                                 console.error(err);
                             } else {
-                                console.log("Player" + playerId + " has joined game " + gameId);
+                                console.log("Player " + playerId + " has joined game " + gameId);
                             }
                         });
                     }
@@ -119,7 +121,7 @@ function joinNewGame(transaction) {
             });
         } else {
             console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
-                game.state);
+            game.state);
         }
     });
 }
@@ -135,9 +137,25 @@ function gameRegister(transaction) {
     const commitGuess = transaction.commit_guess;
     const bidValue = parseInt(transaction.bid_value);
 
-    GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
-      if (err) console.error(err);
-      else console.log("Player " + playerId + " has registered game successfully.");
+    // Check if player's balance is greater than or equal to the bidValue
+    PlayerController.getPlayerBalance(playerId, function(err, playerBalance) {
+        if (err) console.error(err);
+        else {
+            if (playerBalance < bidValue) console.log("Player " + playerId + " has insufficient funds to place this bid");
+            else {
+                GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
+                  if (err) console.error(err);
+                  else {
+                      const newBalance = playerBalance - bidValue;
+                      PlayerController.updatePlayerBalance(playerId, newBalance, function(err, player) {
+                          if (err) console.error(err);
+                          else console.log("Player " + playerId + "'s new balance is: " + newBalance);
+                      });
+                      console.log("Player " + playerId + " has registered game successfully.");
+                  }
+                });
+            }
+        }
     });
 }
 
