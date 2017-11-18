@@ -49,14 +49,6 @@ function getRandomInt(min, max) {
  */
 var addNewTransaction = function(transaction, callback) {
     // TODO: Validate transaction_id and player_id
-    var newTransaction = new Transaction(transaction);
-    newTransaction.save(function(err, updatedTransaction) {
-        if (err) callback("Error when saving a Transaction document");
-        io.emit("newTransaction", updatedTransaction);
-        console.log("Added to transaction queue: ");
-        console.log(newTransaction);
-        callback(null);
-    });
 };
 
 /**
@@ -115,8 +107,8 @@ function gameRegister(transaction) {
     const bidValue = parseInt(transaction.bid_value);
 
     GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
-      if (err) console.error(err);
-      else console.log("Player " + playerId + " has registered game successfully.");
+        if (err) console.error(err);
+        else console.log("Player " + playerId + " has registered game successfully.");
     });
 }
 
@@ -133,8 +125,8 @@ function revealSecret(transaction) {
     const rTwo = parseInt(transaction.r_two);
 
     GameController.revealSecret(gameId, playerId, secret, guess, rOne, rTwo, function(err) {
-      if (err) console.error(err);
-      else console.log("Player " + playerId + " has revealed secret.");
+        if (err) console.error(err);
+        else console.log("Player " + playerId + " has revealed secret.");
     });
 }
 

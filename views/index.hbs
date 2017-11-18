@@ -51,7 +51,26 @@
             /* Put in Queue */
             socket.on('newTransaction', (transaction) => {
                 console.log("New transaction received.");
-                document.getElementById("incomingTransactions").innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
+                console.log(transaction);
+
+                var table = document.getElementById("currentQueue");
+                var tr = document.createElement("tr");
+                var td1 = document.createElement("td");
+                var td2 = document.createElement("td");
+                var td3 = document.createElement("td");
+                var transactionType = document.createTextNode(transaction.transactionType);
+                var playerId = document.createTextNode(transaction.playerId);
+                var parameters = document.createTextNode(transaction.parameters);
+
+
+                td1.appendChild(transactionType);
+                td2.appendChild(playerId);
+                td3.appendChild(parameters);
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+
+                table.appendChild(tr);
             });
         });
     </script>
@@ -105,7 +124,7 @@
                         <div class="card">
                             <div class="card-block">
                                 <!-- TODO: completed and incomplete games should be rendered differently -->
-                                <table class="table">
+                                <table class="table" id="currentQueue">
                                     <thead>
                                         <tr>
                                             <th>
@@ -119,7 +138,7 @@
                                             </th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="incomingTransactions">
                                         {{#each currentQueue}}
                                         <tr>
                                             <td>
@@ -133,9 +152,6 @@
                                             </td>
                                         </tr>
                                         {{/each}}
-                                        <span id="incomingTransactions">
-                                            
-                                        </span>
                                     </tbody>
                                 </table>
                             </div>
