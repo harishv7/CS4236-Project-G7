@@ -88,7 +88,7 @@ function joinNewGame(transaction) {
         if (err) console.error(err);
 
         if (game.state == GameStates.ACTIVATE) {
-            GameController.addPlayer(gameId, playerId, function(err, updatedGame) {
+            GameController.addPlayerToGame(gameId, playerId, function(err, updatedGame) {
                 // TODO: might need to io.emit
                 if (err) {
                     console.error(err);
@@ -98,7 +98,7 @@ function joinNewGame(transaction) {
             });
         } else {
             console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
-                GameStates[game.state]);
+                game.state);
         }
     });
 }
@@ -144,18 +144,10 @@ function revealSecret(transaction) {
  */
 function killGame(transaction) {
     const gameId = transaction.game_id;
-    Game.find({ id: gameId }, function(err, game) {
-        if (err) console.error(err);
 
-        if (game.state == GameStates.PLAYERS_JOIN) {
-            game.state = GameStates.GAME_KILLED;
-            game.save(function(err, updatedGame) {
-                if (err) console.error(err);
-                else console.log("Game " + gameId + " was killed.")
-            });
-        } else {
-            console.log("Tried to kill game " + gameId + ". But, the game is in state" + GameStates[game.state]);
-        }
+    GameController.killGame(gameId, function(err, msg) {
+        if (err) console.error(err);
+        else console.log(msg);
     });
 }
 

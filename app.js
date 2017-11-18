@@ -9,8 +9,6 @@ var cronMaster = require('./util/CronMaster');
 var dbManager = require('./DBManager');
 
 var index = require('./routes/index');
-var players = require('./routes/players');
-var games = require('./routes/games');
 
 var Player = require('./models/Player');
 var Game = require('./models/Game');
@@ -44,8 +42,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/players', players);
-app.use('/games', games);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
