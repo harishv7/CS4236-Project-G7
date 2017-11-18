@@ -1,10 +1,10 @@
 var CronJob = require('cron').CronJob;
-var Game = require('../models/Game');
-var Transaction = require('../models/Transaction');
-var GameStates = require('./GameStates');
 var async = require('async');
 
+var Game = require('../models/Game');
+var Transaction = require('../models/Transaction');
 var GameController = require('../controllers/games');
+var GameStates = require('./GameStates');
 
 // TODO: execute every minute
 const clockDuration = 20;

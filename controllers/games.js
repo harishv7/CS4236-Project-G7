@@ -4,28 +4,13 @@ var GameStates = require('./../util/GameStates');
 
 var getGame = function(gameId, callback) {
     Game.findOne({id: gameId}).then(function(game) {
-        if (!game) {
-            return callback('Game not found');
-        }
-        return callback(null, game);
+        if (!game) return callback('Game not found');
+        else return callback(null, game);
     })
     .catch(function(err) {
         return callback(err);
     });
 };
-
-var displayGames = function(req, res) {
-    Game.find().then(function(games) {
-        if (games.length == 0) {
-            return res.status(404).send('No games found');
-        }
-        return res.send({games});
-    })
-    .catch(function(err) {
-        return res.status(400).send(err);
-    });
-};
-
 
 var activateNewGame = function(minBidValue, startTime, callback) {
     let game = new Game({
@@ -34,7 +19,7 @@ var activateNewGame = function(minBidValue, startTime, callback) {
     });
 
     game.save().then(function(game) {
-        callback(null, game);
+        return callback(null, game);
     })
     .catch(function(err) {
         return callback(err);
@@ -43,11 +28,8 @@ var activateNewGame = function(minBidValue, startTime, callback) {
 
 var addPlayerToGame = function(gameId, playerId, callback) {
     Game.findOneAndUpdate({id: gameId}, {$push: {players: playerId}}, {new: true}).then(function(game) {
-        if (!game) {
-            return callback('Game does not exist');
-        } else {
-            return callback(null, game);
-        }
+        if (!game) return callback('Game does not exist');
+        else return callback(null, game);
     })
     .catch(function(err) {
         return callback(err);
@@ -65,16 +47,13 @@ var gameRegister = function(gameId, playerId, commitSecret, commitGuess, bidValu
     //TODO: Handle condition where bid_value is less than the game's min_bid_value
 
     Game.findOneAndUpdate({id: gameId}, {$push: {game_registers: temp}}, {new: true}).then(function(game) {
-        if (!game) {
-            return callback('Game does not exist');
-        } else {
-            return callback(null, game);
-        }
+        if (!game) return callback('Game does not exist');
+        else return callback(null, game);
     })
     .catch(function(err) {
         return callback(err);
     });
-}
+};
 
 var revealSecret = function(gameId, playerId, secret, guess, rOne, rTwo, callback) {
     var temp = {
@@ -83,19 +62,16 @@ var revealSecret = function(gameId, playerId, secret, guess, rOne, rTwo, callbac
         guess: guess,
         r_one: rOne,
         r_two: rTwo
-    }
+    };
 
     Game.findOneAndUpdate({id: gameId}, {$push: {reveal_secrets: temp}}, {new: true}).then(function(game) {
-        if (!game) {
-            return callback('Game does not exist');
-        } else {
-            return callback(null, game);
-        }
+        if (!game) return callback('Game does not exist');
+        else return callback(null, game);
     })
     .catch(function(err) {
         return callback(err);
     });
-}
+};
 
 var updateGameState = function(req, res) {
     var id = req.params.id;
@@ -138,11 +114,10 @@ var killGame = function(gameId, callback) {
 
 module.exports = {
     getGame,
-    displayGames,
     activateNewGame,
     addPlayerToGame,
     gameRegister,
     revealSecret,
     updateGameState,
     killGame
-}
+};
