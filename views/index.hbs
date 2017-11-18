@@ -1,2 +1,213 @@
-<h1>{{title}}</h1>
-<p>Welcome to {{title}}</p>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js" integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E=" crossorigin="anonymous"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css">
+    <link rel='stylesheet' href='/stylesheets/home.css' />
+    <script type="text/javascript" src="/javascripts/baffle.js"></script>
+    <script type="text/javascript" src="/javascripts/particles.min.js"></script>
+    <title>The CupShufflers</title>
+</head>
+
+<body>
+    <script>
+        $(document).ready(function() {
+            $(function() {
+                let b = baffle('.baffleme').start();
+                b.reveal(2000);
+
+                particlesJS.load('particles', '/javascripts/particles.json', function() {
+                    console.log('callback - particles.js config loaded');
+                });
+
+                $("#accordion").accordion({
+                    collapsible: true,
+                    active: false,
+                    heightStyle: "content"
+                });
+            });
+
+            /* Socket IO */
+            const socket = io('http://localhost:3000');
+            socket.on('connection', function(client) {});
+
+            socket.emit('init');
+
+            socket.on('init', (transactionQueue) => {
+                console.log("initialising");
+                for (transaction in transactionQueue) {
+                    document.body.innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
+                }
+            });
+
+            socket.on('clock', (time) => {
+                console.log("Received clock: " + parseInt(time));
+                document.getElementById("clock").innerHTML = parseInt(time);
+            });
+
+            /* Put in Queue */
+            socket.on('newTransaction', (transaction) => {
+                console.log("New transaction received.");
+                document.getElementById("incomingTransactions").innerHTML += '<div>' + JSON.stringify(transaction) + '</div>';
+            });
+        });
+    </script>
+    <div class="cover">
+        <div class="navbar navbar-default">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-ex-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#"><span>CupShufflers</span></a>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar-ex-collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li> <a href="/">Home</a> </li>
+                        <li> <a href="/client">Client</a> </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="cover-image" id="particles"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h1 class="baffleme custom-heading">The CupShufflers | Home</h1>
+                    <p class="baffleme">Play money to earn money. 😉</p>
+                    <br><br>
+                    <a href="#logs" class="custom-btn">See Log 📝</a> </div>
+            </div>
+        </div>
+    </div>
+    <div class="section" id="clockTime">
+        <div class="container">
+            <div class="row text-inverse">
+                <div class="col-md-6">
+                    <h1>⏰ - <span id="clock"></span></h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="section>" id="logs">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Current Queue</h2>
+                    <div id="games">
+                        <div class="card">
+                            <div class="card-block">
+                                <!-- TODO: completed and incomplete games should be rendered differently -->
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                Transaction Type
+                                            </th>
+                                            <th>
+                                                Player ID
+                                            </th>
+                                            <th>
+                                                Parameters
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{#each games}}
+                                        <tr>
+                                            <td>
+                                                {{this.transaction_id}}
+                                            </td>
+                                            <td>
+                                                {{this.player_id}}
+                                            </td>
+                                            <td>
+                                                {{this.params}}
+                                            </td>
+                                        </tr>
+                                        {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2>Log</h2>
+                    <div id="transactions">
+                        <div class="card">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Transaction Type
+                                        </th>
+                                        <th>
+                                            Player ID
+                                        </th>
+                                        <th>
+                                            Parameters
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#each transactions}}
+                                    <tr>
+                                        <td>
+                                            {{this.transaction_id}}
+                                        </td>
+                                        <td>
+                                            {{this.player_id}}
+                                        </td>
+                                        <td>
+                                            {{this.params}}
+                                        </td>
+                                    </tr>
+                                    {{/each}}
+                                    <div id="incomingTransactions">
+                                        <!-- Display new incoming transactiosn -->
+                                    </div>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <br>
+    </div>
+    <footer class="section section-primary" id="footer">
+        <div class="container">
+            <div class="row ">
+                <div class="col-sm-6 ">
+                    <h1 class="custom-heading ">The CupShufflers</h1>
+                    <p>Harish V, Amar, Jonas, Teddy, Kowshik</p>
+                </div>
+                <div class="col-sm-6 ">
+                    <p class="text-info text-right "> <br><br></p>
+                    <div class="row ">
+                        <div class="col-md-12 hidden-lg hidden-md hidden-sm text-left "> <a href="# "><i class="fa fa-3x fa-fw fa-instagram text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw fa-twitter text-inverse "></i></a> <a href="#
+                                            "><i class="fa fa-3x fa-fw fa-facebook text-inverse "></i></a>
+                            <a href="# "><i class="fa fa-3x fa-fw fa-github text-inverse "></i></a>
+                        </div>
+                    </div>
+                    <div class="row ">
+                        <div class="col-md-12 hidden-xs text-right "> <a href="# "><i class="fa fa-3x fa-fw fa-instagram text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw fa-twitter text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw
+                                            fa-facebook text-inverse "></i></a>
+                            <a href="# "><i class="fa fa-3x fa-fw fa-github text-inverse "></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

@@ -1,40 +1,38 @@
 var express = require('express');
 var router = express.Router();
 
-var cronMaster = require('../util/CronMaster');
+var Transaction = require('../models/Transaction');
+var Game = require('../models/Game');
 
-var transactionTypes = {
-    ACTIVATE: 0,
-    JOINGAME: 1,
-    KILLGAME: 2,
-    STARTGAME: 3,
-    GAMEREGISTER: 4,
-    REVEALSECRET: 5,
-    DISTRIBUTE: 6
-};
+var cronMaster = require('../util/CronMaster');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('index', { title: 'Express' });
+    // TODO: Ask Harish -- how to beautify this disgusting nested calls
+    Transaction.find({}, function(err, transactions) {
+        if (err) console.error(err);
+
+        Game.find({}, function(err, games) {
+            if (err) console.error(err);
+
+            res.render('index', { title: 'The CupShufflers', transactions: transactions, games: games});
+        });
+    });
 });
 
-/**
- * Expected params:
- */
+router.get('/client', function(req, res, next) {
+    res.render('client');
+});
+
 router.post('/send-transaction', function(req, res, next) {
-    res.render('index', { title: 'Express' });
-    console.log(req.body);
-
-    const transaction = {
-        "transactionType": transactionTypes.ACTIVATE,
-        "minBidValue": req.body["min_bid_value"]
-    };
-
-    cronMaster.addNewTransaction(transaction, function(err) {
+    // TODO: validate that the request has the (correct) transaction_id and player_id fields
+    cronMaster.addNewTransaction(req.body, function(err) {
         if (err) {
             console.err("Error occurred when adding new transaction");
+            res.sendStatus(500);
         } else {
             console.log("Added new transaction successfully");
+            res.sendStatus(200);
         }
     });
 });
