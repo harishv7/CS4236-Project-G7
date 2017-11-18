@@ -1,6 +1,11 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat|Open+Sans:300,400');
-body {
-    font-family: 'Open Sans', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+body,
+p {
+    font-family: 'Open Sans', 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif !important;
+}
+
+.sub-heading {
+    font-family: 'Open Sans', sans-serif;
 }
 
 .custom-heading {
@@ -9,6 +14,10 @@ body {
 
 .cover-image {
     /* background-image: url(https://cdn.pixabay.com/photo/2014/11/03/11/20/money-515058_1280.jpg) */
+}
+
+#game-functions {
+    background-color: #F2F2F2;
 }
 
 .custom-btn {
