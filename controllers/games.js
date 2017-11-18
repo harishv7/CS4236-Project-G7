@@ -211,7 +211,7 @@ var canOpenCommitment = function(gameRegister, revealSecret) {
     return isSecretCommitValid && isGuessCommitValid;
 };
 var startGame = function(gameId, callback) {
-    Game.find({ id: gameId }, function(err, game) {
+    Game.findOne({ id: gameId }, function(err, game) {
         if (err) callback(err);
 
         if (game.state == GameStates.PLAYERS_JOIN) {
@@ -227,7 +227,7 @@ var startGame = function(gameId, callback) {
 };
 
 var killGame = function(gameId, callback) {
-    Game.find({ id: gameId }, function(err, game) {
+    Game.findOne({ id: gameId }, function(err, game) {
         if (err) callback(err);
 
         if (game.state == GameStates.PLAYERS_JOIN) {

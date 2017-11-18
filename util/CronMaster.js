@@ -296,34 +296,41 @@ var cronJob = new CronJob(cronExpression, function() {
             });
         },
         function(callback) {
-            Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $ne: GameStates.GAME_KILLED } }, function(err, games) {
+            Game.find({ state: { $eq: GameStates.PLAYERS_JOIN } }, function(err, games) {
                 if (err) console.error(err);
 
                 games.forEach(function(game) {
-                    if (game.state == GameStates.ACTIVATE) {
-                        console.log("Checking if this game has enough players to play:")
-                        console.log(game);
-                        console.log("Number of players: " + game.players.length);
+                    console.log("Checking if this game has enough players to play:")
+                    console.log(game);
+                    console.log("Number of players: " + game.players.length);
 
-                        var transactionId;
-                        if (game.players.length < 3) {
-                            console.log("Game has fewer than 3 players. Killing game.");
-                            transactionId = transactionTypes.KILLGAME;
-                        } else {
-                            transactionId = transactionTypes.STARTGAME;
-                        }
-
-                        // START or KILL GAME
-                        addNewTransaction({
-                            "transaction_id": transactionId,
-                            "game_id": game.id
-                        }, function(err) {
-                            if (err) {
-                                console.log("Some error. :/");
-                            }
-                        });
+                    var transactionId;
+                    if (game.players.length < 3) {
+                        console.log("Game has fewer than 3 players. Killing game.");
+                        transactionId = transactionTypes.KILLGAME;
+                    } else {
+                        transactionId = transactionTypes.STARTGAME;
                     }
 
+                    // START or KILL GAME
+                    addNewTransaction({
+                        "transaction_id": transactionId,
+                        "game_id": game.id
+                    }, function(err) {
+                        if (err) {
+                            console.log("Some error. :/");
+                        }
+                    });
+                });
+                callback(null);
+            })
+        },
+        function(callback) {
+            Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $nin: [GameStates.GAME_KILLED,
+                GameStates.PLAYERS_JOIN] } }, function(err, games) {
+                if (err) console.error(err);
+
+                games.forEach(function(game) {
                     game.state += 1;
                     game.save(function(err, updatedGame) {
                         if (err) console.error(err);
