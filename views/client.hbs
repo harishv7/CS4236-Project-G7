@@ -82,7 +82,26 @@
           "game_id": gameId
         }, function() {
           // onSuccess callback
-
+          swal({
+            title: "Success!",
+            type: "success",
+            html: `successfully joined game<br>
+            playerId: ${playerId}<br>
+            gameId: ${gameId}<br>`,
+            confirmButtonColor: "#87CEFF",
+            confirmButtonText: "Register Guess & Secret",
+          }).then(function (result) {
+            if (result.value) {
+              // Go to game register modal
+              $("#ui-id-5").click();
+              $('html, body').animate({
+                scrollTop: $("#ui-id-5").offset().top
+              }, 2000);
+            } else {
+              // close modal
+              $("#ui-id-3").click();
+            }
+          });
         });
       });
 
@@ -102,6 +121,31 @@
           "commit_secret": commitSecret,
           "commit_guess": commitGuess,
           "bid_value": bidValue
+        }, function() {
+          // onSuccess callback
+          swal({
+            title: "Success!",
+            type: "success",
+            html: `successfully registered<br>
+            playerId: ${playerId}<br>
+            gameId: ${gameId}<br>
+            secret: ${commitSecret}<br>
+            guess: ${commitGuess}<br>
+            bid: ${bidValue}`,
+            showCancelButton: true,
+            confirmButtonColor: "#77dd77",
+            confirmButtonText: "Okay",
+            cancelButtonText: "Reveal Secret",
+            cancelButtonColor: "#87CEFF",
+          }).then(function (result) {
+            if (result.value) {
+              // Close register modal
+              $("#ui-id-5").click();
+            } else {
+              // Go to Reveal secret modal
+              $("#ui-id-7").click();
+            }
+          });
         });
       });
 
@@ -125,6 +169,19 @@
           "guess": guess,
           "r_one": rOne,
           "r_two": rTwo
+        }, function () {
+          // onSuccess callback
+          swal({
+            title: "You've revealed your secret",
+            type: "success",
+            html: `Let's take a look at the results!`,
+            confirmButtonColor: "#87CEFF",
+            confirmButtonText: "See Results",
+          }).then(function (result) {
+            if (result.value) {
+              window.location.href="/#logs";
+            }
+          });
         });
       });
     });
