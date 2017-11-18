@@ -8,6 +8,7 @@
     <link href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css">
     <link rel='stylesheet' href='/stylesheets/client.css' />
     <script type="text/javascript" src="/javascripts/baffle.js"></script>
+    <script type="text/javascript" src="/javascripts/particles.min.js"></script>
     <title>The CupShufflers</title>
 </head>
 
@@ -17,6 +18,10 @@
             $(function() {
                 let b = baffle('.baffleme').start();
                 b.reveal(2000);
+
+                particlesJS.load('particles', '/javascripts/particles.json', function() {
+                  console.log('callback - particles.js config loaded');
+                });
 
                 $("#accordion").accordion({
                     collapsible: true,
@@ -96,7 +101,7 @@
     </script>
     <div class="cover">
         <div class="navbar navbar-default">
-            <div class="container">
+            <div class="container" id="particles">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-ex-collapse">
                         <span class="sr-only">Toggle navigation</span>
@@ -267,7 +272,6 @@
 
                             </fieldset>
                         </form>
-
                     </div>
                     <h3>Reveal Secret</h3>
                     <div>
@@ -335,13 +339,12 @@
                                 <div class="form-group">
                                     <label class="col-md-4 control-label" for="submit"></label>
                                     <div class="col-md-4">
-                                        <button id="submit" type="submit" submit " class="btn btn-primary ">Submit</button>
+                                        <button id="submit" type="submit" class="btn btn-primary">Submit</button>
                                     </div>
                                 </div>
 
                             </fieldset>
                         </form>
-
                     </div>
                 </div>
             </div>
@@ -374,5 +377,4 @@
         </div>
     </div>
 </footer>
-
 </html>

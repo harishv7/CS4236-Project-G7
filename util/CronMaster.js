@@ -43,7 +43,7 @@ function getRandomInt(min, max) {
 /**
  * Adds new transaction into the queue
  * @param {Object} transaction
- * @param {*} callback 
+ * @param {*} callback
  */
 var addNewTransaction = function(transaction, callback) {
     // TODO: Validate transaction_id and player_id
@@ -59,7 +59,7 @@ var addNewTransaction = function(transaction, callback) {
 
 /**
  * Expected fields in transaction: min_bid_value, player_id
- * @param {Object} transaction 
+ * @param {Object} transaction
  */
 function activateNewGame(transaction) {
     console.log("activating game.");
@@ -79,7 +79,7 @@ function activateNewGame(transaction) {
 
 /**
  * Expected fields in transaction: game_id, player_id
- * @param {Object} transaction 
+ * @param {Object} transaction
  */
 function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -107,7 +107,7 @@ function joinNewGame(transaction) {
 
 /**
  * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess
- * @param {Object} transaction 
+ * @param {Object} transaction
  */
 function gameRegister(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -127,7 +127,7 @@ function gameRegister(transaction) {
 
 /**
  * Expected fields in transaction: game_id, player_id, secret, guess, r_one, r_two
- * @param {Object} transaction 
+ * @param {Object} transaction
  */
 function revealSecret(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -149,7 +149,7 @@ function revealSecret(transaction) {
 
 /**
  * Expected fields in transaction: game_id
- * @param {Object} transaction 
+ * @param {Object} transaction
  */
 function killGame(transaction) {
     const gameId = transaction.game_id;
@@ -179,7 +179,7 @@ function distribute(transaction) {
 
 /**
  * Calls the necessary function execute based on the transaction id
- * @param {Object} transaction 
+ * @param {Object} transaction
  */
 function executeTransaction(transaction) {
     const transactionId = parseInt(transaction.transaction_id);
@@ -243,6 +243,7 @@ var cronJob = new CronJob(cronExpression, function() {
                 if (!err) {
                     transactionQueue = transactions;
 
+                    // TODO: This must be done synchronously
                     while (transactionQueue.length > 0) {
                         const lengthOfQueue = transactionQueue.length;
                         const randomIndex = getRandomInt(0, lengthOfQueue - 1);

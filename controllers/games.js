@@ -16,7 +16,6 @@ var displayGame = function(req, res) {
     });
 };
 
-
 var displayGames = function(req, res) {
     Game.find().then(function(games) {
         if (games.length == 0) {
@@ -28,7 +27,6 @@ var displayGames = function(req, res) {
         return res.status(400).send(err);
     });
 };
-
 
 var activateGame = function(req, res) {
     let game = new Game({
@@ -107,7 +105,6 @@ var updateGameState = function(req, res) {
     });
 };
 
-
 var deleteGame = function(req, res) {
     var id = req.params.id;
 
@@ -121,7 +118,6 @@ var deleteGame = function(req, res) {
         return res.status(400).send(err);
     });
 };
-
 
 module.exports = {
     displayGame,
