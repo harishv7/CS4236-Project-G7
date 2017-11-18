@@ -20,7 +20,7 @@
                 b.reveal(2000);
 
                 particlesJS.load('particles', '/javascripts/particles.json', function() {
-                  console.log('callback - particles.js config loaded');
+                    console.log('callback - particles.js config loaded');
                 });
 
                 $("#accordion").accordion({
@@ -101,7 +101,7 @@
     </script>
     <div class="cover">
         <div class="navbar navbar-default">
-            <div class="container" id="particles">
+            <div class="container">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-ex-collapse">
                         <span class="sr-only">Toggle navigation</span>
@@ -119,262 +119,278 @@
                 </div>
             </div>
         </div>
-        <div class="cover-image"></div>
+        <div class="cover-image" id="particles"></div>
         <div class="container">
             <div class="row">
                 <div class="col-md-12 text-center">
                     <h1 class="baffleme custom-heading">CS4236 - The CupShufflers 🍶</h1>
                     <p class="baffleme">Play money to earn money. 😉</p>
                     <br><br>
-                    <a href="#accordion" class="custom-btn">PLAY 💰</a> </div>
+                    <a href="#game-functions" class="custom-btn">PLAY 💰</a> </div>
             </div>
         </div>
     </div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-10 col-md-offset-1">
-                <div id="accordion">
-                    <h3>Activate</h3>
-                    <div>
-                        <form class="form-horizontal" id="activateForm">
-                            <fieldset>
+    <div class="section>" id="game-functions">
+        <div class="container">
+            <div class="row">
+                <h1 class="text-center custom-heading">Game Functions</h1>
+                <div class="col-md-10 col-md-offset-1">
+                    <h3 class="sub-heading">How it works?</h3>
+                    <p>
+                        <ul>
+                            <li>To initialise a new game, send an activate request.</li>
+                            <li>To join an existing game (already activated), send a join-game request.</li>
+                            <li>To register your guess and secret, send a game-register request.</li>
+                            <li>To reveal your guess and secret, send a reveal-secret request.</li>
+                            <li>The winners of the game will be published on the <a href="http://localhost:3000">homepage</a>.</li>
+                        </ul>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <div id="accordion">
+                        <h3>Activate</h3>
+                        <div>
+                            <form class="form-horizontal" id="activateForm">
+                                <fieldset>
+                                    <!-- Form Name -->
+                                    <legend>Activate</legend>
 
-                                <!-- Form Name -->
-                                <legend>Activate</legend>
-
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="playerId">Player ID</label>
-                                    <div class="col-md-4">
-                                        <input id="playerId" name="playerId" type="text" placeholder="1" class="form-control input-md" required="">
-                                        <span class="help-block">Enter your player ID</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="playerId">Player ID</label>
+                                        <div class="col-md-4">
+                                            <input id="playerId" name="playerId" type="text" placeholder="1" class="form-control input-md" required="">
+                                            <span class="help-block">Enter your player ID</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="minBidAmt">Minimum Bid Amount</label>
-                                    <div class="col-md-4">
-                                        <input id="minBidAmt" name="minBidAmt" type="text" placeholder="10" class="form-control input-md" required="">
-                                        <span class="help-block">Enter the minimum bid amount for the new game</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="minBidAmt">Minimum Bid Amount</label>
+                                        <div class="col-md-4">
+                                            <input id="minBidAmt" name="minBidAmt" type="text" placeholder="10" class="form-control input-md" required="">
+                                            <span class="help-block">Enter the minimum bid amount for the new game</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Button -->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="submit"></label>
-                                    <div class="col-md-4">
-                                        <button id="submit" type="submit" name="submit" class="btn btn-primary">Submit</button>
+                                    <!-- Button -->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="submit"></label>
+                                        <div class="col-md-4">
+                                            <button id="submit" type="submit" name="submit" class="btn btn-primary">Submit</button>
+                                        </div>
                                     </div>
-                                </div>
 
-                            </fieldset>
-                        </form>
-                    </div>
-                    <h3>Join Game</h3>
-                    <div>
-                        <form class="form-horizontal" id="joinGameForm">
-                            <fieldset>
+                                </fieldset>
+                            </form>
+                        </div>
+                        <h3>Join Game</h3>
+                        <div>
+                            <form class="form-horizontal" id="joinGameForm">
+                                <fieldset>
 
-                                <!-- Form Name -->
-                                <legend>Join Game</legend>
+                                    <!-- Form Name -->
+                                    <legend>Join Game</legend>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="playerId">Player ID</label>
-                                    <div class="col-md-4">
-                                        <input id="playerId" name="playerId" type="text" placeholder="1" class="form-control input-md" required="">
-                                        <span class="help-block">Enter your player ID</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="playerId">Player ID</label>
+                                        <div class="col-md-4">
+                                            <input id="playerId" name="playerId" type="text" placeholder="1" class="form-control input-md" required="">
+                                            <span class="help-block">Enter your player ID</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="gameId">Game ID</label>
-                                    <div class="col-md-4">
-                                        <input id="gameId" name="gameId" type="text" placeholder="1" class="form-control input-md" required="">
-                                        <span class="help-block">Enter the game ID you want to join</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="gameId">Game ID</label>
+                                        <div class="col-md-4">
+                                            <input id="gameId" name="gameId" type="text" placeholder="1" class="form-control input-md" required="">
+                                            <span class="help-block">Enter the game ID you want to join</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Button -->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="submit"></label>
-                                    <div class="col-md-4">
-                                        <button id="submit" type="submit" name="submit" class="btn btn-primary">Submit</button>
+                                    <!-- Button -->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="submit"></label>
+                                        <div class="col-md-4">
+                                            <button id="submit" type="submit" name="submit" class="btn btn-primary">Submit</button>
+                                        </div>
                                     </div>
-                                </div>
 
-                            </fieldset>
-                        </form>
+                                </fieldset>
+                            </form>
 
-                    </div>
-                    <h3>Game Register</h3>
-                    <div>
-                        <form class="form-horizontal" id="gameRegisterForm">
-                            <fieldset>
+                        </div>
+                        <h3>Game Register</h3>
+                        <div>
+                            <form class="form-horizontal" id="gameRegisterForm">
+                                <fieldset>
 
-                                <!-- Form Name -->
-                                <legend>Game Register</legend>
+                                    <!-- Form Name -->
+                                    <legend>Game Register</legend>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="playerId">Player ID</label>
-                                    <div class="col-md-4">
-                                        <input id="playerId" name="playerId" type="text" placeholder="1" class="form-control input-md" required="">
-                                        <span class="help-block">Enter your player ID.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="playerId">Player ID</label>
+                                        <div class="col-md-4">
+                                            <input id="playerId" name="playerId" type="text" placeholder="1" class="form-control input-md" required="">
+                                            <span class="help-block">Enter your player ID.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="gameId">Game ID</label>
-                                    <div class="col-md-4">
-                                        <input id="gameId" name="gameId" type="text" placeholder="2" class="form-control input-md" required="">
-                                        <span class="help-block">Enter game ID.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="gameId">Game ID</label>
+                                        <div class="col-md-4">
+                                            <input id="gameId" name="gameId" type="text" placeholder="2" class="form-control input-md" required="">
+                                            <span class="help-block">Enter game ID.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="commitSecret">Commit Secret</label>
-                                    <div class="col-md-5">
-                                        <input id="commitSecret" name="commitSecret" type="text" placeholder="Secret" class="form-control input-md" required="">
-                                        <span class="help-block">Enter the SHA-256 bits digest of your secret commitment.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="commitSecret">Commit Secret</label>
+                                        <div class="col-md-5">
+                                            <input id="commitSecret" name="commitSecret" type="text" placeholder="Secret" class="form-control input-md" required="">
+                                            <span class="help-block">Enter the SHA-256 bits digest of your secret commitment.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="commitGuess">Commit Guess</label>
-                                    <div class="col-md-5">
-                                        <input id="commitGuess" name="commitGuess" type="text" placeholder="Guess" class="form-control input-md" required="">
-                                        <span class="help-block">Enter the SHA-256 bits digest of your guess commitment.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="commitGuess">Commit Guess</label>
+                                        <div class="col-md-5">
+                                            <input id="commitGuess" name="commitGuess" type="text" placeholder="Guess" class="form-control input-md" required="">
+                                            <span class="help-block">Enter the SHA-256 bits digest of your guess commitment.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="bidValue">Bid Value</label>
-                                    <div class="col-md-4">
-                                        <input id="bidValue" name="bidValue" type="text" placeholder="Value" class="form-control input-md" required="">
-                                        <span class="help-block">Enter your bid amount.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="bidValue">Bid Value</label>
+                                        <div class="col-md-4">
+                                            <input id="bidValue" name="bidValue" type="text" placeholder="Value" class="form-control input-md" required="">
+                                            <span class="help-block">Enter your bid amount.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Button -->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="submit"></label>
-                                    <div class="col-md-4">
-                                        <button id="submit" type="submit" name="submit" class="btn btn-primary">Submit</button>
+                                    <!-- Button -->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="submit"></label>
+                                        <div class="col-md-4">
+                                            <button id="submit" type="submit" name="submit" class="btn btn-primary">Submit</button>
+                                        </div>
                                     </div>
-                                </div>
 
-                            </fieldset>
-                        </form>
-                    </div>
-                    <h3>Reveal Secret</h3>
-                    <div>
-                        <form class="form-horizontal" id="revealSecretForm">
-                            <fieldset>
+                                </fieldset>
+                            </form>
+                        </div>
+                        <h3>Reveal Secret</h3>
+                        <div>
+                            <form class="form-horizontal" id="revealSecretForm">
+                                <fieldset>
 
-                                <!-- Form Name -->
-                                <legend>Reveal Secret</legend>
+                                    <!-- Form Name -->
+                                    <legend>Reveal Secret</legend>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="playerId">Player ID</label>
-                                    <div class="col-md-4">
-                                        <input id="playerId" name="playerId" type="text" placeholder="1" class="form-control input-md" required="">
-                                        <span class="help-block">Enter your player ID.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="playerId">Player ID</label>
+                                        <div class="col-md-4">
+                                            <input id="playerId" name="playerId" type="text" placeholder="1" class="form-control input-md" required="">
+                                            <span class="help-block">Enter your player ID.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="gameId">Game ID</label>
-                                    <div class="col-md-4">
-                                        <input id="gameId" name="gameId" type="text" placeholder="2" class="form-control input-md" required="">
-                                        <span class="help-block">Enter game ID.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="gameId">Game ID</label>
+                                        <div class="col-md-4">
+                                            <input id="gameId" name="gameId" type="text" placeholder="2" class="form-control input-md" required="">
+                                            <span class="help-block">Enter game ID.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="secret">Secret</label>
-                                    <div class="col-md-5">
-                                        <input id="secret" name="secret" type="text" placeholder="Secret" class="form-control input-md" required="">
-                                        <span class="help-block">Enter secret in plaintext</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="secret">Secret</label>
+                                        <div class="col-md-5">
+                                            <input id="secret" name="secret" type="text" placeholder="Secret" class="form-control input-md" required="">
+                                            <span class="help-block">Enter secret in plaintext</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="guess">Guess</label>
-                                    <div class="col-md-5">
-                                        <input id="guess" name="guess" type="text" placeholder="Guess" class="form-control input-md" required="">
-                                        <span class="help-block">Enter guess in plaintext.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="guess">Guess</label>
+                                        <div class="col-md-5">
+                                            <input id="guess" name="guess" type="text" placeholder="Guess" class="form-control input-md" required="">
+                                            <span class="help-block">Enter guess in plaintext.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="rOne">R1</label>
-                                    <div class="col-md-4">
-                                        <input id="rOne" name="rOne" type="text" placeholder="r1" class="form-control input-md" required="">
-                                        <span class="help-block">Enter r1.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="rOne">R1</label>
+                                        <div class="col-md-4">
+                                            <input id="rOne" name="rOne" type="text" placeholder="r1" class="form-control input-md" required="">
+                                            <span class="help-block">Enter r1.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Text input-->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="rTwo">R2</label>
-                                    <div class="col-md-4">
-                                        <input id="rTwo" name="rTwo" type="text" placeholder="r2" class="form-control input-md" required="">
-                                        <span class="help-block">Enter r2.</span>
+                                    <!-- Text input-->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="rTwo">R2</label>
+                                        <div class="col-md-4">
+                                            <input id="rTwo" name="rTwo" type="text" placeholder="r2" class="form-control input-md" required="">
+                                            <span class="help-block">Enter r2.</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Button -->
-                                <div class="form-group">
-                                    <label class="col-md-4 control-label" for="submit"></label>
-                                    <div class="col-md-4">
-                                        <button id="submit" type="submit" class="btn btn-primary">Submit</button>
+                                    <!-- Button -->
+                                    <div class="form-group">
+                                        <label class="col-md-4 control-label" for="submit"></label>
+                                        <div class="col-md-4">
+                                            <button id="submit" type="submit" class="btn btn-primary">Submit</button>
+                                        </div>
                                     </div>
-                                </div>
-
-                            </fieldset>
-                        </form>
+                                </fieldset>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
+            <br>
         </div>
     </div>
-</body>
-<br>
-<footer class="section section-primary ">
-    <div class="container ">
-        <div class="row ">
-            <div class="col-sm-6 ">
-                <h1 class="custom-heading ">The CupShufflers</h1>
-                <p>Harish V, Amar, Jonas, Teddy, Kowshik</p>
-            </div>
-            <div class="col-sm-6 ">
-                <p class="text-info text-right "> <br><br></p>
-                <div class="row ">
-                    <div class="col-md-12 hidden-lg hidden-md hidden-sm text-left "> <a href="# "><i class="fa fa-3x fa-fw fa-instagram text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw fa-twitter text-inverse "></i></a> <a href="#
+    <footer class="section section-primary ">
+        <div class="container">
+            <div class="row ">
+                <div class="col-sm-6 ">
+                    <h1 class="custom-heading ">The CupShufflers</h1>
+                    <p>Harish V, Amar, Jonas, Teddy, Kowshik</p>
+                </div>
+                <div class="col-sm-6 ">
+                    <p class="text-info text-right "> <br><br></p>
+                    <div class="row ">
+                        <div class="col-md-12 hidden-lg hidden-md hidden-sm text-left "> <a href="# "><i class="fa fa-3x fa-fw fa-instagram text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw fa-twitter text-inverse "></i></a> <a href="#
                                             "><i class="fa fa-3x fa-fw fa-facebook text-inverse "></i></a>
-                        <a href="# "><i class="fa fa-3x fa-fw fa-github text-inverse "></i></a>
+                            <a href="# "><i class="fa fa-3x fa-fw fa-github text-inverse "></i></a>
+                        </div>
                     </div>
-                </div>
-                <div class="row ">
-                    <div class="col-md-12 hidden-xs text-right "> <a href="# "><i class="fa fa-3x fa-fw fa-instagram text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw fa-twitter text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw
+                    <div class="row ">
+                        <div class="col-md-12 hidden-xs text-right "> <a href="# "><i class="fa fa-3x fa-fw fa-instagram text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw fa-twitter text-inverse "></i></a> <a href="# "><i class="fa fa-3x fa-fw
                                             fa-facebook text-inverse "></i></a>
-                        <a href="# "><i class="fa fa-3x fa-fw fa-github text-inverse "></i></a>
+                            <a href="# "><i class="fa fa-3x fa-fw fa-github text-inverse "></i></a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</footer>
+    </footer>
+</body>
+
 </html>
