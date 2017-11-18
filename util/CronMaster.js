@@ -59,7 +59,7 @@ var addNewTransaction = function(transaction, callback) {
 
 /**
  * Expected fields in transaction: min_bid_value, player_id
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function activateNewGame(transaction) {
     console.log("activating game.");
@@ -76,7 +76,7 @@ function activateNewGame(transaction) {
 
 /**
  * Expected fields in transaction: game_id, player_id
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -103,7 +103,7 @@ function joinNewGame(transaction) {
 
 /**
  * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function gameRegister(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -123,7 +123,7 @@ function gameRegister(transaction) {
 
 /**
  * Expected fields in transaction: game_id, player_id, secret, guess, r_one, r_two
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function revealSecret(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -145,7 +145,7 @@ function revealSecret(transaction) {
 
 /**
  * Expected fields in transaction: game_id
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function killGame(transaction) {
     const gameId = transaction.game_id;
@@ -164,12 +164,15 @@ function killGame(transaction) {
     });
 }
 
+/**
+ * Expected fields in transaction: game_id
+ * @param {Transaction} transaction
+ */
 function distribute(transaction) {
     const gameId = transaction.game_id;
-    var game = ongoingGames[gameId];
-    game.distribute(function(err) {
-        // TODO: callback should receiving winner details etc.
-        // TODO: publish these details to the log homepage
+    GameController.distribute(gameId, function(err) {
+        if (err) console.error(err);
+        // TODO: io.emit to tell client to fetch the winning info
     });
 }
 
@@ -196,8 +199,8 @@ function executeTransaction(transaction) {
             break;
         case transactionTypes.GAMEREGISTER:
             // TODO: Not yet supported using DB
-            // console.log("GAME REGISTER");
-            // gameRegister(transaction);
+            console.log("GAME REGISTER");
+            gameRegister(transaction);
             break;
         case transactionTypes.REVEALSECRET:
             // TODO: Not yet supported using DB
