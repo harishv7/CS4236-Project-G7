@@ -98,8 +98,8 @@ router.get('/', function(req, res, next) {
 
                         if (parseInt(game.state) === 7) {
                             gameInfo["parameters"] = {
-                                "winners": null,
-                                "winningCupLocation": null
+                                "winners": game.winners,
+                                "winningCupLocation": game.winning_cup
                             };
                         }
 
