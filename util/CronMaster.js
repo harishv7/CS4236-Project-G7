@@ -1,10 +1,10 @@
 var CronJob = require('cron').CronJob;
 var Game = require('../models/Game');
-var Transaction = require('../models/Transaction');
 var GameStates = require('./GameStates');
 var async = require('async');
 
 var GameController = require('../controllers/games');
+var TransactionController = require('../controllers/transactions');
 
 // TODO: execute every minute
 const clockDuration = 20;
@@ -48,13 +48,11 @@ function getRandomInt(min, max) {
  * @param {*} callback
  */
 var addNewTransaction = function(transaction, callback) {
-    // TODO: Validate transaction_id and player_id
-    var newTransaction = new Transaction(transaction);
-    newTransaction.save(function(err, updatedTransaction) {
+    TransactionController.saveTransaction(transaction, function(err, updatedTransaction) {
         if (err) callback("Error when saving a Transaction document");
         io.emit("newTransaction", updatedTransaction);
         console.log("Added to transaction queue: ");
-        console.log(newTransaction);
+        console.log(updatedTransaction);
         callback(null);
     });
 };
@@ -177,7 +175,7 @@ function distribute(transaction) {
 
 /**
  * Calls the necessary function execute based on the transaction id
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function executeTransaction(transaction) {
     const transactionId = parseInt(transaction.transaction_id);
@@ -215,11 +213,10 @@ function executeTransaction(transaction) {
             break;
     }
 
-    transaction.completed = true;
-    transaction.save(function(err, updatedTransaction) {
-        if (err) console.log(err);
-        // TODO: io.emit to update the log
-    });
+   TransactionController.setTransactionAsCompleted(transaction, function(err, updatedTransaction) {
+       if (err) console.log(err);
+       // TODO: io.emit to update the log
+   });
 }
 
 /**
@@ -237,7 +234,7 @@ var cronJob = new CronJob(cronExpression, function() {
             // TODO: If a current transaction does not belong to the state yet, we put it back into the queue
             // Invalid transactions can be removed such as join game when game is in middle of gameregister state
             var transactionQueue;
-            Transaction.find({ completed: false }, function(err, transactions) {
+            TransactionController.getIncompleteTransactions(function(err, transactions) {
                 if (!err) {
                     transactionQueue = transactions;
 
