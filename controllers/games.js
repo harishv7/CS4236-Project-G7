@@ -202,14 +202,15 @@ var distribute = function(gameId, callback) {
 var canOpenCommitment = function(gameRegister, revealSecret) {
     var isSecretCommitValid, isGuessCommitValid;
     var hash1 = crypto.createHash('sha256'), hash2 = crypto.createHash('sha256');
-    var computedSecretCommit = hash1.update(revealSecret.r_one).update(revealSecret.secret).digest(),
-        computedGuessCommit = hash2.update(revealSecret.r_two).update(revealSecret.guess).digest();
+    var computedSecretCommit = hash1.update(String(revealSecret.r_one)).update(String(revealSecret.secret)).digest(),
+        computedGuessCommit = hash2.update(String(revealSecret.r_two)).update(String(revealSecret.guess)).digest();
 
     isSecretCommitValid = computedSecretCommit == gameRegister.secret_commit;
     isGuessCommitValid = computedGuessCommit == gameRegister.guess_commit;
 
     return isSecretCommitValid && isGuessCommitValid;
 };
+
 var startGame = function(gameId, callback) {
     Game.findOne({ id: gameId }, function(err, game) {
         if (err) callback(err);
