@@ -122,7 +122,9 @@ router.get('/', function(req, res, next) {
 
                         if (parseInt(game.state) === 7) {
                             gameInfo["winners"] = game.winners;
-                            gameInfo["winningCupLocation"] = "Winning Cup Location: " + game.winning_cup;
+                            if (game.winning_cup) {
+                                gameInfo["winningCupLocation"] = "Winning Cup Location: " + game.winning_cup;
+                            }
                         }
 
                         callback();
