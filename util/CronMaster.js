@@ -78,13 +78,8 @@ function activateNewGame(transaction) {
 
 // Temporary function to populate players collection
 function populatePlayersCollection() {
-<<<<<<< HEAD
     var i = 5;
     while(i > 0) {
-=======
-    var i = 3;
-    while (i > 0) {
->>>>>>> develop
         PlayerController.createPlayer(function(err, player) {
             console.log(player);
         });
