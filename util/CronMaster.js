@@ -78,8 +78,13 @@ function activateNewGame(transaction) {
 
 // Temporary function to populate players collection
 function populatePlayersCollection() {
+<<<<<<< HEAD
     var i = 5;
     while(i > 0) {
+=======
+    var i = 3;
+    while (i > 0) {
+>>>>>>> develop
         PlayerController.createPlayer(function(err, player) {
             console.log(player);
         });
@@ -143,15 +148,15 @@ function gameRegister(transaction) {
             if (playerBalance < bidValue) console.log("Player " + playerId + " has insufficient funds to place this bid");
             else {
                 GameController.gameRegister(gameId, playerId, commitSecret, commitGuess, bidValue, function(err) {
-                  if (err) console.error(err);
-                  else {
-                      const newBalance = playerBalance - bidValue;
-                      PlayerController.updatePlayerBalance(playerId, newBalance, function(err, player) {
-                          if (err) console.error(err);
-                          else console.log("Player " + playerId + "'s new balance is: " + newBalance);
-                      });
-                      console.log("Player " + playerId + " has registered game successfully.");
-                  }
+                    if (err) console.error(err);
+                    else {
+                        const newBalance = playerBalance - bidValue;
+                        PlayerController.updatePlayerBalance(playerId, newBalance, function(err, player) {
+                            if (err) console.error(err);
+                            else console.log("Player " + playerId + "'s new balance is: " + newBalance);
+                        });
+                        console.log("Player " + playerId + " has registered game successfully.");
+                    }
                 });
             }
         }
@@ -171,8 +176,8 @@ function revealSecret(transaction) {
     const rTwo = parseInt(transaction.r_two);
 
     GameController.revealSecret(gameId, playerId, secret, guess, rOne, rTwo, function(err) {
-      if (err) console.error(err);
-      else console.log("Player " + playerId + " has revealed secret.");
+        if (err) console.error(err);
+        else console.log("Player " + playerId + " has revealed secret.");
     });
 }
 
