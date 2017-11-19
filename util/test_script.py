@@ -56,6 +56,7 @@ def main():
         hash1, hash2 = SHA256.new(), SHA256.new()
         hash1.update(bytes(val['r_one'] + val['secret'], 'utf-8'))
         hash2.update(bytes(val['r_two'] + val['guess'], 'utf-8'))
+        
         requests.post(send_transaction_url, data={
             'transaction_id': 4,
             'player_id': key,

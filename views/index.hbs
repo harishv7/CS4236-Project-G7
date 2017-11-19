@@ -20,7 +20,7 @@
             var currentTime = new Date();
             var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
             var clock = Math.ceil(diffInSeconds / clockDuration);
-            document.getElementById("clock").innerHTML = parseInt(clock);
+            document.getElementById("clock").innerHTML = clock;
             console.log(clock);
 
             function reloadClock() {
@@ -165,7 +165,11 @@
                                                 {{this.transactionType}}
                                             </td>
                                             <td>
-                                                {{this.playerId}}
+                                                {{#if this.playerId}}
+                                                    {{this.playerId}}
+                                                {{else}}
+                                                    Broker
+                                                {{/if}}
                                             </td>
                                             <td>
                                                 {{#each this.parameters}} {{this}} <br> {{/each}}
@@ -203,7 +207,11 @@
                                             {{this.transactionType}}
                                         </td>
                                         <td>
-                                            {{this.playerId}}
+                                            {{#if this.playerId}}
+                                                    {{this.playerId}}
+                                            {{else}}
+                                                Broker
+                                            {{/if}}
                                         </td>
                                         <td>
                                             {{#each this.parameters}} {{this}} <br> {{/each}}
@@ -253,7 +261,15 @@
                                                 {{this.gameState}}
                                             </td>
                                             <td>
-                                                {{#each this.parameters}} {{this}} <br> {{/each}}
+                                                {{this.winningCupLocation}}
+                                                <br>
+                                                {{#if this.winners}}
+                                                    Winners: <br>
+                                                    {{#each this.winners}} 
+                                                    Player ID: {{this.player_id}}, Amount: {{this.win_value}}
+                                                    <br> 
+                                                    {{/each}}
+                                                {{/if}}
                                             </td>
                                         </tr>
                                         {{/each}}

@@ -28,6 +28,8 @@ var clock = Math.ceil(diffInSeconds / clockDuration);
 
 // TODO: intialise clock on log homepage when server starts
 
+
+
 // transaction codes
 var transactionTypes = {
     ACTIVATE: 0,
@@ -44,6 +46,73 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function populateTransactionInfo(transaction, callback) {
+    const completed = transaction.completed;
+    var transactionInfo = {};
+    transactionInfo["playerId"] = transaction.player_id;
+
+    switch (parseInt(transaction.transaction_id)) {
+        case 0:
+            transactionInfo["transactionType"] = "Activate";
+            transactionInfo["parameters"] = [
+                "Minimum Bid Value: " + transaction.min_bid_value
+            ];
+            break;
+        case 1:
+            transactionInfo["transactionType"] = "Join Game";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ]
+            break;
+        case 2:
+            transactionInfo["transactionType"] = "Kill Game";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break;
+        case 3:
+            transactionInfo["transactionType"] = "Start Game";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break;
+        case 4:
+            transactionInfo["transactionType"] = "Game Register";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id,
+                "Commit Secret: " + transaction.commit_secret,
+                "Commit Guess: " + transaction.commit_guess,
+                "Bid Value: " + transaction.bid_value
+            ];
+            break;
+        case 5:
+            transactionInfo["transactionType"] = "Reveal Secret";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id,
+                "Secret: " + transaction.secret,
+                "Guess: " + transaction.guess,
+                "R1: " + transaction.r_one,
+                "R2: " + transaction.r_two
+            ];
+            break;
+        case 6:
+            transactionInfo["transactionType"] = "Distribute";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break
+        case 7:
+            transactionInfo["transactionType"] = "Complete";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break
+        default:
+            break;
+    }
+    callback(null, completed, transactionInfo);
+}
+
 /**
  * Adds new transaction into the queue
  * @param {Object} transaction
@@ -52,10 +121,16 @@ function getRandomInt(min, max) {
 var addNewTransaction = function(transaction, callback) {
     TransactionController.saveTransaction(transaction, function(err, updatedTransaction) {
         if (err) callback("Error when saving a Transaction document");
-        io.emit("newTransaction", updatedTransaction);
         console.log("Added to transaction queue: ");
         console.log(updatedTransaction);
-        callback(null);
+        populateTransactionInfo(updatedTransaction, function(err, completed, transactionInfo) {
+            if (transactionInfo["playerId"] == null) {
+                transactionInfo["playerId"] = "Broker";
+            }
+            console.log(transactionInfo);
+            io.emit("newTransaction", transactionInfo);
+            callback(null);
+        });
     });
 };
 
@@ -79,7 +154,7 @@ function activateNewGame(transaction) {
 // Temporary function to populate players collection
 function populatePlayersCollection() {
     var i = 5;
-    while(i > 0) {
+    while (i > 0) {
         PlayerController.createPlayer(function(err, player) {
             console.log(player);
         });
@@ -120,7 +195,7 @@ function joinNewGame(transaction) {
             });
         } else {
             console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
-            GameStates[game.state]);
+                GameStates[game.state]);
         }
     });
 }
@@ -251,10 +326,10 @@ function executeTransaction(transaction) {
             break;
     }
 
-   TransactionController.setTransactionAsCompleted(transaction, function(err, updatedTransaction) {
-       if (err) console.log(err);
-       // TODO: io.emit to update the log
-   });
+    TransactionController.setTransactionAsCompleted(transaction, function(err, updatedTransaction) {
+        if (err) console.log(err);
+        // TODO: io.emit to update the log
+    });
 }
 
 /**
@@ -325,8 +400,15 @@ var cronJob = new CronJob(cronExpression, function() {
             })
         },
         function(callback) {
-            Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $nin: [GameStates.GAME_KILLED,
-                GameStates.PLAYERS_JOIN] } }, function(err, games) {
+            Game.find({
+                state: {
+                    $gte: GameStates.ACTIVATE,
+                    $lt: GameStates.COMPLETED,
+                    $nin: [GameStates.GAME_KILLED,
+                        GameStates.PLAYERS_JOIN
+                    ]
+                }
+            }, function(err, games) {
                 if (err) console.error(err);
 
                 games.forEach(function(game) {

@@ -34,9 +34,21 @@ function populateTransactionInfo(transaction, callback) {
             transactionInfo["transactionType"] = "Join Game";
             transactionInfo["parameters"] = [
                 "Game ID: " + transaction.game_id
-            ];
+            ]
             break;
         case 2:
+            transactionInfo["transactionType"] = "Kill Game";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break;
+        case 3:
+            transactionInfo["transactionType"] = "Start Game";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break;
+        case 4:
             transactionInfo["transactionType"] = "Game Register";
             transactionInfo["parameters"] = [
                 "Game ID: " + transaction.game_id,
@@ -45,7 +57,7 @@ function populateTransactionInfo(transaction, callback) {
                 "Bid Value: " + transaction.bid_value
             ];
             break;
-        case 3:
+        case 5:
             transactionInfo["transactionType"] = "Reveal Secret";
             transactionInfo["parameters"] = [
                 "Game ID: " + transaction.game_id,
@@ -55,6 +67,18 @@ function populateTransactionInfo(transaction, callback) {
                 "R2: " + transaction.r_two
             ];
             break;
+        case 6:
+            transactionInfo["transactionType"] = "Distribute";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break
+        case 7:
+            transactionInfo["transactionType"] = "Complete";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break
         default:
             break;
     }
@@ -97,15 +121,12 @@ router.get('/', function(req, res, next) {
                         allGames.push(gameInfo);
 
                         if (parseInt(game.state) === 7) {
-                            gameInfo["parameters"] = {
-                                "winners": game.winners,
-                                "winningCupLocation": game.winning_cup
-                            };
+                            gameInfo["winners"] = game.winners;
+                            gameInfo["winningCupLocation"] = "Winning Cup Location: " + game.winning_cup;
                         }
 
                         callback();
                     }, function(err) {
-                        console.log('Transactions delivering to home.');
                         res.render('index', { title: 'The CupShufflers', currentQueue: currentQueue, completed: archive, games: allGames });
                     });
                 }
@@ -119,7 +140,6 @@ router.get('/client', function(req, res, next) {
 });
 
 router.post('/send-transaction', function(req, res, next) {
-    console.log(req.body);
     var newTransaction = new Transaction(req.body);
 
     // save to db
@@ -131,6 +151,9 @@ router.post('/send-transaction', function(req, res, next) {
             console.log(newTransaction);
 
             populateTransactionInfo(updatedTransaction, function(err, completed, transactionInfo) {
+                if (transactionInfo["playerId"] == null) {
+                    transactionInfo["playerId"] = "Broker";
+                }
                 console.log(transactionInfo);
                 io.emit("newTransaction", transactionInfo);
             });
