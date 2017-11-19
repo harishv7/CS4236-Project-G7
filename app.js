@@ -4,27 +4,30 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
 var cronMaster = require('./util/CronMaster');
 var dbManager = require('./DBManager');
 
 var index = require('./routes/index');
-var users = require('./routes/users');
 
-var User = require('./models/User.js');
-var Game = require('./models/Game.js');
-
-// // To create a new game
-// var game = new Game({
-//     id: '123',
-//     min_bid: 10,
-//     start_time: Date.now()
-// });
-
-// // To save the game
-// game.save();
-
+var Player = require('./models/Player');
+var Game = require('./models/Game');
+var Transaction = require('./models/Transaction');
 
 var app = express();
+
+// socket
+var server = require('http').createServer(app);
+global.io = require('socket.io')(server);
+
+server.listen(3000);
+
+io.on('connect', onConnect);
+
+function onConnect(socket) {
+    console.log("Socket Connected.");
+    socket.emit('hello', 'can you hear me?', 1, 2, 'abc');
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -39,7 +42,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
-app.use('/users', users);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -62,4 +64,6 @@ app.use(function(err, req, res, next) {
 // start clock
 cronMaster.startCronjob();
 
-module.exports = app;
+module.exports = {
+    app
+};
