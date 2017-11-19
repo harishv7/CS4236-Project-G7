@@ -80,8 +80,9 @@ var revealSecret = function(gameId, playerId, secret, guess, rOne, rTwo, callbac
 
 var distribute = function(gameId, callback) {
     Game.findOne({id: gameId}).then(function(game) {
+        console.log("Currently trying to distribute for game id: " + game.id);
         // map the playerIds to gameRegisters and revealSecrets
-        var playerIdToGameRegisters = {}, playerIdToRevealSecrets;
+        var playerIdToGameRegisters = {}, playerIdToRevealSecrets = {};
         game.game_registers.forEach(function(gameRegister) {
             playerIdToGameRegisters[gameRegister.player_id] = gameRegister;
         });
@@ -116,29 +117,37 @@ var distribute = function(gameId, callback) {
             totalBidValue += playerIdToGameRegisters[playerId].bid_value;
         }
 
+        console.log("Calculated the total bid value: " + totalBidValue);
         if (dishonestPlayers.length > 0) {
+            console.log("There is " + dishonestPlayers.length + " dishonest players. Shame on them");
             var numOfHonestPlayers = numOfPlayers - dishonestPlayers.length,
                 winningAmount = 0;
+
+            console.log("Refunding the bid values of honest players...");
             for (var playerId in playerIdToGameRegisters) {
                 var thisBidValue = playerIdToGameRegisters[playerId].bid_value;
-                if (dishonestPlayers.include(playerId)) {
+                if (dishonestPlayers.indexOf(playerId) > -1) {
                     // Calculate the amount to be distributed equally
                     winningAmount += thisBidValue;
                 } else {
                     // Each honest player gets back what they bid
+                    console.log("Player " + playerId + " gets back " + thisBidValue);
                     PlayerController.addBalance(playerId, thisBidValue);
                 }
             }
 
             winningAmount /= numOfHonestPlayers;
+            console.log("Splitting " + winningAmount + " to the honest players...");
             for (var playerId in playerIdToGameRegisters) {
-                if (!dishonestPlayers.include(playerId)) {
+                if (dishonestPlayers.indexOf(playerId) == -1) {  // if honest player
                     game.winners.push({player_id: playerId, win_value: winningAmount});
                     PlayerController.addBalance(playerId, winningAmount);
+                    console.log("Player " + playerId + " gets " + winningAmount);
                 }
             }
 
         } else {
+            console.log("No dishonest player! :-)");
             // Calculate the location of the coin, and map cup to the players betting on that cup
             var cupToPlayers = {},
                 coinLocation = 0;
@@ -156,12 +165,16 @@ var distribute = function(gameId, callback) {
 
             coinLocation = coinLocation % numOfPlayers;
             game.winning_cup = coinLocation;
+            console.log("The winning cup: " + coinLocation);
+            console.log("The winners: " + cupToPlayers[coinLocation]);
 
             var totalWinningBidValue = 0;
-            cupToPlayers[coinLocation].forEach(function(playerId) {
-                var thisGameRegister = playerIdToGameRegisters[playerId];
-                totalWinningBidValue += thisGameRegister.bid_value;
-            });
+            if (cupToPlayers[coinLocation]) {
+                cupToPlayers[coinLocation].forEach(function(playerId) {
+                    var thisGameRegister = playerIdToGameRegisters[playerId];
+                    totalWinningBidValue += thisGameRegister.bid_value;
+                });
+            }
 
             if (totalWinningBidValue > 0) {
                 // If there are some winners
@@ -170,16 +183,19 @@ var distribute = function(gameId, callback) {
                         thisBidValue = thisGameRegister.bid_value,
                         thisDebit = totalBidValue *  thisBidValue / totalWinningBidValue;
                     PlayerController.addBalance(playerId, thisDebit);
-                    game.winners.push({player_id: playerId, win_value: thisDebit});
+                    game.winners.push({player_id: playerId, win_value: thisDebit - thisBidValue});
+                    console.log("Player " + playerId + " gets " + thisDebit + ", wins " + (thisDebit - thisBidValue));
                 });
             } else {
                 // If there's no winner, broker take some percentage from the total bid value
+                console.log("Nobody won!");
                 totalWinningBidValue = (1 - BROKER_PERCENTAGE) * totalBidValue;
                 for (var playerId in playerIdToGameRegisters) {
                     var thisGameRegister = playerIdToGameRegisters[playerId],
                         thisBidValue = thisGameRegister.bid_value,
                         thisDebit = totalWinningBidValue *  thisBidValue / totalBidValue;
                     PlayerController.addBalance(playerId, thisDebit);
+                    console.log("Player " + playerId + " gets back " + thisDebit);
                 }
 
                 // TODO: transfer the percentage to broker
@@ -205,8 +221,11 @@ var canOpenCommitment = function(gameRegister, revealSecret) {
     var computedSecretCommit = hash1.update(String(revealSecret.r_one)).update(String(revealSecret.secret)).digest(),
         computedGuessCommit = hash2.update(String(revealSecret.r_two)).update(String(revealSecret.guess)).digest();
 
-    isSecretCommitValid = computedSecretCommit == gameRegister.secret_commit;
-    isGuessCommitValid = computedGuessCommit == gameRegister.guess_commit;
+    computedSecretCommit = computedSecretCommit.toString('hex');
+    computedGuessCommit = computedGuessCommit.toString('hex');
+
+    isSecretCommitValid = computedSecretCommit == gameRegister.commit_secret;
+    isGuessCommitValid = computedGuessCommit == gameRegister.commit_guess;
 
     return isSecretCommitValid && isGuessCommitValid;
 };
