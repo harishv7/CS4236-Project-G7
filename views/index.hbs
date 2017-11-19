@@ -261,14 +261,18 @@
                                                 {{this.gameState}}
                                             </td>
                                             <td>
-                                                {{this.winningCupLocation}}
-                                                <br>
-                                                {{#if this.winners}}
-                                                    Winners: <br>
-                                                    {{#each this.winners}} 
-                                                    Player ID: {{this.player_id}}, Amount: {{this.win_value}}
-                                                    <br> 
-                                                    {{/each}}
+                                                {{#if this.winningCupLocation}}
+                                                    {{this.winningCupLocation}}
+                                                    <br>
+                                                    {{#if this.winners}}
+                                                        Winners: <br>
+                                                        {{#each this.winners}} 
+                                                        Player ID: {{this.player_id}}, Amount: {{this.win_value}}
+                                                        <br> 
+                                                        {{/each}}
+                                                    {{else}}
+                                                        No Winners!
+                                                    {{/if}}
                                                 {{/if}}
                                             </td>
                                         </tr>

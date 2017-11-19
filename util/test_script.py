@@ -28,7 +28,7 @@ send_transaction_url = 'http://localhost:3000/send-transaction'
 
 bets = {
     2: {'secret': '0', 'guess': '1', 'r_one': '123', 'r_two': '123', 'bid_value': 10},
-    3: {'secret': '0', 'guess': '1', 'r_one': '234', 'r_two': '234', 'bid_value': 20},  # change secret to 1 for no winner case
+    3: {'secret': '1', 'guess': '1', 'r_one': '234', 'r_two': '234', 'bid_value': 20},  # change secret to 1 for no winner case
     4: {'secret': '1', 'guess': '0', 'r_one': '345', 'r_two': '345', 'bid_value': 10}
 }
 
