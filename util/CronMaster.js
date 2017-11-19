@@ -21,7 +21,7 @@ var totalGames = 0;
 
 // global clock counter
 // genesis is 16 Nov 2017, 16:20.5 GMT
-var genesis = new Date(1510849205000);
+var genesis = new Date(1511101192000);
 var currentTime = new Date();
 var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
 var clock = Math.ceil(diffInSeconds / clockDuration);

@@ -124,6 +124,8 @@ router.get('/', function(req, res, next) {
                             gameInfo["winners"] = game.winners;
                             if (game.winning_cup) {
                                 gameInfo["winningCupLocation"] = "Winning Cup Location: " + game.winning_cup;
+                            } else {
+                                gameInfo["winningCupLocation"] = "No Winning Cup - Dishonest Players :(";
                             }
                         }
 

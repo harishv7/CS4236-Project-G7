@@ -16,7 +16,7 @@
     <script>
         $(document).ready(function() {
             var clockDuration = 20;
-            var genesis = new Date(1510849205000);
+            var genesis = new Date(1511101192000);
             var currentTime = new Date();
             var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
             var clock = Math.ceil(diffInSeconds / clockDuration);
@@ -25,7 +25,7 @@
 
             function reloadClock() {
                 var clockDuration = 20;
-                var genesis = new Date(1510849205000);
+                var genesis = new Date(1511101192000);
                 var currentTime = new Date();
                 var diffInSeconds = (currentTime.getTime() - genesis.getTime()) / 1000;
                 var clock = Math.ceil(diffInSeconds / clockDuration);
@@ -273,8 +273,6 @@
                                                     {{else}}
                                                         No Winners!
                                                     {{/if}}
-                                                {{else}}
-                                                    No winning cup - dishonest player :(
                                                 {{/if}}
                                             </td>
                                         </tr>

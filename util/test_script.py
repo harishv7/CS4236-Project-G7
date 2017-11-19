@@ -70,8 +70,8 @@ def main():
     time.sleep(clock_duration + 1)
     for key, val in bets.items():
         # Simulate a dishonest player
-        # if key == 4:
-        #     continue
+        if key == 4:
+            continue
         requests.post(send_transaction_url, data={
             'transaction_id': 5,
             'player_id': key,
