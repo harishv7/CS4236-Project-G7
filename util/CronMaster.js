@@ -244,9 +244,8 @@ function executeTransaction(transaction) {
             revealSecret(transaction);
             break;
         case transactionTypes.DISTRIBUTE:
-            // TODO: Not yet supported using DB
-            // console.log("DISTRIBUTE");
-            // distribute(transaction);
+            console.log("DISTRIBUTE");
+            distribute(transaction);
             break;
         default:
             break;
@@ -314,8 +313,8 @@ var cronJob = new CronJob(cronExpression, function() {
 
                     // START or KILL GAME
                     addNewTransaction({
-                        "transaction_id": transactionId,
-                        "game_id": game.id
+                        transaction_id: transactionId,
+                        game_id: game.id
                     }, function(err) {
                         if (err) {
                             console.log("Some error. :/");
@@ -335,6 +334,17 @@ var cronJob = new CronJob(cronExpression, function() {
                     game.save(function(err, updatedGame) {
                         if (err) console.error(err);
                     });
+
+                    if (game.state == GameStates.REVEAL_SECRET) {
+                        addNewTransaction({
+                            transaction_id: transactionTypes.DISTRIBUTE,
+                            game_id: game.id
+                        }, function(err) {
+                            if (err) {
+                                console.log("Some error. :/");
+                            }
+                        });
+                    }
                 });
             });
             callback(null);
