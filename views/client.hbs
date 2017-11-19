@@ -10,6 +10,7 @@
   <script type="text/javascript" src="/javascripts/baffle.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.0.0/sweetalert2.all.js"></script>
   <script type="text/javascript" src="/javascripts/particles.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
   <title>The CupShufflers</title>
 </head>
 
@@ -110,9 +111,13 @@
         var data = $("#gameRegisterForm").serializeArray();
         const playerId = data[0]["value"];
         const gameId = data[1]["value"];
-        const commitSecret = data[2]["value"];
-        const commitGuess = data[3]["value"];
-        const bidValue = data[4]["value"];
+        const secret = data[2]["value"];
+        const guess = data[3]["value"];
+        const rOne = data[4]["value"];
+        const rTwo = data[5]["value"];
+        const bidValue = data[6]["value"];
+        const commitSecret = CryptoJS.SHA256(rOne + secret).toString();
+        const commitGuess = CryptoJS.SHA256(rTwo + guess).toString();
 
         $.post("http://localhost:3000/send-transaction", {
           "transaction_id": 4,
@@ -129,8 +134,8 @@
             html: `successfully registered<br>
             playerId: ${playerId}<br>
             gameId: ${gameId}<br>
-            secret: ${commitSecret}<br>
-            guess: ${commitGuess}<br>
+            commitSecret: ${commitSecret}<br>
+            commitGuess: ${commitGuess}<br>
             bid: ${bidValue}`,
             showCancelButton: true,
             confirmButtonColor: "#77dd77",
@@ -340,19 +345,37 @@
 
                     <!-- Text input-->
                     <div class="form-group">
-                      <label class="col-md-4 control-label" for="commitSecret">Commit Secret</label>
+                      <label class="col-md-4 control-label" for="secret">Secret</label>
                       <div class="col-md-5">
-                        <input id="commitSecret" name="commitSecret" type="text" placeholder="Secret" class="form-control input-md" required="">
-                        <span class="help-block">Enter the SHA-256 bits digest of your secret commitment.</span>
+                        <input id="secret" name="secret" type="text" placeholder="Secret" class="form-control input-md" required="">
+                        <span class="help-block">Enter secret in plaintext</span>
                       </div>
                     </div>
 
                     <!-- Text input-->
                     <div class="form-group">
-                      <label class="col-md-4 control-label" for="commitGuess">Commit Guess</label>
+                      <label class="col-md-4 control-label" for="guess">Guess</label>
                       <div class="col-md-5">
-                        <input id="commitGuess" name="commitGuess" type="text" placeholder="Guess" class="form-control input-md" required="">
-                        <span class="help-block">Enter the SHA-256 bits digest of your guess commitment.</span>
+                        <input id="guess" name="guess" type="text" placeholder="Guess" class="form-control input-md" required="">
+                        <span class="help-block">Enter guess in plaintext.</span>
+                      </div>
+                    </div>
+
+                    <!-- Text input-->
+                    <div class="form-group">
+                      <label class="col-md-4 control-label" for="rOne">R1</label>
+                      <div class="col-md-4">
+                        <input id="rOne" name="rOne" type="text" placeholder="r1" class="form-control input-md" required="">
+                        <span class="help-block">Enter r1.</span>
+                      </div>
+                    </div>
+
+                    <!-- Text input-->
+                    <div class="form-group">
+                      <label class="col-md-4 control-label" for="rTwo">R2</label>
+                      <div class="col-md-4">
+                        <input id="rTwo" name="rTwo" type="text" placeholder="r2" class="form-control input-md" required="">
+                        <span class="help-block">Enter r2.</span>
                       </div>
                     </div>
 

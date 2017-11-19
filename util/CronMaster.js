@@ -5,6 +5,7 @@ var Game = require('../models/Game');
 var Transaction = require('../models/Transaction');
 var PlayerController = require('../controllers/players');
 var GameController = require('../controllers/games');
+var TransactionController = require('../controllers/transactions');
 var GameStates = require('./GameStates');
 
 // TODO: execute every minute
@@ -27,6 +28,8 @@ var clock = Math.ceil(diffInSeconds / clockDuration);
 
 // TODO: intialise clock on log homepage when server starts
 
+
+
 // transaction codes
 var transactionTypes = {
     ACTIVATE: 0,
@@ -43,18 +46,97 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function populateTransactionInfo(transaction, callback) {
+    const completed = transaction.completed;
+    var transactionInfo = {};
+    transactionInfo["playerId"] = transaction.player_id;
+
+    switch (parseInt(transaction.transaction_id)) {
+        case 0:
+            transactionInfo["transactionType"] = "Activate";
+            transactionInfo["parameters"] = [
+                "Minimum Bid Value: " + transaction.min_bid_value
+            ];
+            break;
+        case 1:
+            transactionInfo["transactionType"] = "Join Game";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ]
+            break;
+        case 2:
+            transactionInfo["transactionType"] = "Kill Game";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break;
+        case 3:
+            transactionInfo["transactionType"] = "Start Game";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break;
+        case 4:
+            transactionInfo["transactionType"] = "Game Register";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id,
+                "Commit Secret: " + transaction.commit_secret,
+                "Commit Guess: " + transaction.commit_guess,
+                "Bid Value: " + transaction.bid_value
+            ];
+            break;
+        case 5:
+            transactionInfo["transactionType"] = "Reveal Secret";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id,
+                "Secret: " + transaction.secret,
+                "Guess: " + transaction.guess,
+                "R1: " + transaction.r_one,
+                "R2: " + transaction.r_two
+            ];
+            break;
+        case 6:
+            transactionInfo["transactionType"] = "Distribute";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break
+        case 7:
+            transactionInfo["transactionType"] = "Complete";
+            transactionInfo["parameters"] = [
+                "Game ID: " + transaction.game_id
+            ];
+            break
+        default:
+            break;
+    }
+    callback(null, completed, transactionInfo);
+}
+
 /**
  * Adds new transaction into the queue
  * @param {Object} transaction
  * @param {*} callback
  */
 var addNewTransaction = function(transaction, callback) {
-    // TODO: Validate transaction_id and player_id
+    TransactionController.saveTransaction(transaction, function(err, updatedTransaction) {
+        if (err) callback("Error when saving a Transaction document");
+        console.log("Added to transaction queue: ");
+        console.log(updatedTransaction);
+        populateTransactionInfo(updatedTransaction, function(err, completed, transactionInfo) {
+            if (transactionInfo["playerId"] == null) {
+                transactionInfo["playerId"] = "Broker";
+            }
+            console.log(transactionInfo);
+            io.emit("newTransaction", transactionInfo);
+            callback(null);
+        });
+    });
 };
 
 /**
  * Expected fields in transaction: min_bid_value, player_id
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function activateNewGame(transaction) {
     console.log("activating game.");
@@ -71,19 +153,19 @@ function activateNewGame(transaction) {
 
 // Temporary function to populate players collection
 function populatePlayersCollection() {
-    var i = 3;
+    var i = 5;
     while (i > 0) {
         PlayerController.createPlayer(function(err, player) {
             console.log(player);
         });
         i--;
     }
-};
-//populatePlayersCollection();
+}
+// populatePlayersCollection();
 
 /**
  * Expected fields in transaction: game_id, player_id
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function joinNewGame(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -113,14 +195,14 @@ function joinNewGame(transaction) {
             });
         } else {
             console.log("Player " + playerId + " tried to join " + gameId + ". But, the game is in state " +
-                game.state);
+                GameStates[game.state]);
         }
     });
 }
 
 /**
- * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess, bid_value
- * @param {Object} transaction
+ * Expected fields in transaction: game_id, player_id, commit_secret, commit_guess
+ * @param {Transaction} transaction
  */
 function gameRegister(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -153,7 +235,7 @@ function gameRegister(transaction) {
 
 /**
  * Expected fields in transaction: game_id, player_id, secret, guess, r_one, r_two
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function revealSecret(transaction) {
     const gameId = parseInt(transaction.game_id);
@@ -169,9 +251,18 @@ function revealSecret(transaction) {
     });
 }
 
+function startGame(transaction) {
+    const gameId = transaction.game_id;
+
+    GameController.startGame(gameId, function(err, msg) {
+        if (err) console.error(err);
+        else console.log(msg);
+    });
+}
+
 /**
  * Expected fields in transaction: game_id
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function killGame(transaction) {
     const gameId = transaction.game_id;
@@ -182,18 +273,21 @@ function killGame(transaction) {
     });
 }
 
+/**
+ * Expected fields in transaction: game_id
+ * @param {Transaction} transaction
+ */
 function distribute(transaction) {
     const gameId = transaction.game_id;
-    var game = ongoingGames[gameId];
-    game.distribute(function(err) {
-        // TODO: callback should receiving winner details etc.
-        // TODO: publish these details to the log homepage
+    GameController.distribute(gameId, function(err) {
+        if (err) console.error(err);
+        // TODO: io.emit to tell client to fetch the winning info
     });
 }
 
 /**
  * Calls the necessary function execute based on the transaction id
- * @param {Object} transaction
+ * @param {Transaction} transaction
  */
 function executeTransaction(transaction) {
     const transactionId = parseInt(transaction.transaction_id);
@@ -208,6 +302,10 @@ function executeTransaction(transaction) {
             console.log("JOIN GAME");
             joinNewGame(transaction);
             break;
+        case transactionTypes.STARTGAME:
+            console.log("START GAME");
+            startGame(transaction);
+            break;
         case transactionTypes.KILLGAME:
             console.log("KILL GAME");
             killGame(transaction);
@@ -221,16 +319,14 @@ function executeTransaction(transaction) {
             revealSecret(transaction);
             break;
         case transactionTypes.DISTRIBUTE:
-            // TODO: Not yet supported using DB
-            // console.log("DISTRIBUTE");
-            // distribute(transaction);
+            console.log("DISTRIBUTE");
+            distribute(transaction);
             break;
         default:
             break;
     }
 
-    transaction.completed = true;
-    transaction.save(function(err, updatedTransaction) {
+    TransactionController.setTransactionAsCompleted(transaction, function(err, updatedTransaction) {
         if (err) console.log(err);
         // TODO: io.emit to update the log
     });
@@ -251,7 +347,7 @@ var cronJob = new CronJob(cronExpression, function() {
             // TODO: If a current transaction does not belong to the state yet, we put it back into the queue
             // Invalid transactions can be removed such as join game when game is in middle of gameregister state
             var transactionQueue;
-            Transaction.find({ completed: false }, function(err, transactions) {
+            TransactionController.getIncompleteTransactions(function(err, transactions) {
                 if (!err) {
                     transactionQueue = transactions;
 
@@ -274,53 +370,63 @@ var cronJob = new CronJob(cronExpression, function() {
             });
         },
         function(callback) {
-            // check on all pending game requests to see if enough players have joined
-            Game.find({ state: { $eq: GameStates.PLAYERS_JOIN } }, function(err, gameRequests) {
+            Game.find({ state: { $eq: GameStates.PLAYERS_JOIN } }, function(err, games) {
                 if (err) console.error(err);
 
-                gameRequests.forEach(function(game) {
+                games.forEach(function(game) {
+                    console.log("Checking if this game has enough players to play:")
                     console.log(game);
-
-                    // if the previous state was to join game, we check if sufficient players have joined
-                    console.log("Checking Join Game");
-
-                    console.log("Checking on game:\n" + game);
                     console.log("Number of players: " + game.players.length);
 
+                    var transactionId;
                     if (game.players.length < 3) {
                         console.log("Game has fewer than 3 players. Killing game.");
-                        // initiate transaction to kill game
+                        transactionId = transactionTypes.KILLGAME;
+                    } else {
+                        transactionId = transactionTypes.STARTGAME;
+                    }
+
+                    // START or KILL GAME
+                    addNewTransaction({
+                        transaction_id: transactionId,
+                        game_id: game.id
+                    }, function(err) {
+                        if (err) {
+                            console.log("Some error. :/");
+                        }
+                    });
+                });
+                callback(null);
+            })
+        },
+        function(callback) {
+            Game.find({
+                state: {
+                    $gte: GameStates.ACTIVATE,
+                    $lt: GameStates.COMPLETED,
+                    $nin: [GameStates.GAME_KILLED,
+                        GameStates.PLAYERS_JOIN
+                    ]
+                }
+            }, function(err, games) {
+                if (err) console.error(err);
+
+                games.forEach(function(game) {
+                    game.state += 1;
+                    game.save(function(err, updatedGame) {
+                        if (err) console.error(err);
+                    });
+
+                    if (game.state == GameStates.REVEAL_SECRET) {
                         addNewTransaction({
-                            "transaction_id": transactionTypes.KILLGAME,
-                            "game_id": game.id
+                            transaction_id: transactionTypes.DISTRIBUTE,
+                            game_id: game.id
                         }, function(err) {
                             if (err) {
                                 console.log("Some error. :/");
                             }
                         });
-                    } else {
-                        game.state = GameStates.GAME_START;
-                        game.save(function(err, updatedGame) {
-                            if (err) console.error(err);
-                            else {
-                                console.log("Game starting.");
-                            }
-                        });
                     }
-                });
-
-                callback(null);
-            });
-        },
-        function(callback) {
-            Game.find({ state: { $gte: GameStates.ACTIVATE, $lt: GameStates.COMPLETED, $ne: GameStates.GAME_KILLED } }, function(err, ongoingGames) {
-                if (err) console.error(err);
-
-                ongoingGames.forEach(function(game) {
-                    game.state += 1;
-                    game.save(function(err, updatedGame) {
-                        if (err) console.error(err);
-                    });
                 });
             });
             callback(null);

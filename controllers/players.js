@@ -31,8 +31,25 @@ var updatePlayerBalance = function(playerId, balance, callback) {
     });
 };
 
+var addBalance = function(playerId, amount, callback) {
+    Player.findOne({id: playerId}).then(function(player) {
+        if (player) {
+            player.balance += amount;
+            player.save(function(err, updatedPlayer) {
+                if (err)
+                    callback(err);
+                else
+                    console.log(amount + " was added to Player " + playerId + "'s balance");
+            });
+        }
+    }).catch(function(err) {
+        return callback(err);
+    });
+};
+
 module.exports = {
     getPlayerBalance,
     createPlayer,
     updatePlayerBalance,
-}
+    addBalance
+};

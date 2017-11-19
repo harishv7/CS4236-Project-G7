@@ -51,6 +51,17 @@ var GameSchema = new Schema({
             r_two: Number
         }],
         default: []
+    },
+    winning_cup: {
+        type: Number,
+        default: null
+    },
+    winners: {
+        type: [{
+            player_id: Number,
+            win_value: Number
+        }],
+        default: []
     }
 });
 

@@ -12,7 +12,6 @@ var TransactionSchema = new Schema({
     },
     player_id: {
         type: Number,
-        required: true,
         min: 1
     },
     completed: {
